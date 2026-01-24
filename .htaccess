@@ -1,0 +1,11 @@
+DirectoryIndex dist/index.html
+
+RewriteEngine On
+
+# Serve existing files normally
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Everything else goes to dist/
+RewriteRule ^(.*)$ dist/$1 [L]
