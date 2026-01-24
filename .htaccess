@@ -1,11 +1,15 @@
-DirectoryIndex dist/index.html
-
 RewriteEngine On
 
-# Serve existing files normally
+# 1. Serve existing files in the root (if any, though you blocked .env)
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
 
-# Everything else goes to dist/
+# 2. Check if the request points to a file that actually exists inside dist/
+#    (e.g. /assets/index.css -> dist/assets/index.css)
+RewriteCond %{DOCUMENT_ROOT}/dist/$1 -f
 RewriteRule ^(.*)$ dist/$1 [L]
+
+# 3. For everything else (like /login, /register), serve the index.html
+#    so React Router can handle the page.
+RewriteRule ^ dist/index.html [L]
