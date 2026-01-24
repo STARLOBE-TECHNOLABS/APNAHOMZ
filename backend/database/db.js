@@ -51,7 +51,9 @@ const initDb = async () => {
     }
 };
 
-// Initialize DB on startup
-initDb();
+// Initialize DB on startup only if not in production/serverless to avoid timeout
+if (process.env.NODE_ENV !== 'production') {
+    initDb();
+}
 
 module.exports = promisePool;
