@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'Inter', Arial, Helvetica, sans-serif;
+  @apply text-slate-800
+}
+
+/* Fade In Effect */
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+.landing-page {
+  opacity: 0.6;
+  animation: fadeIn 0.6s forwards;
+}
+
+.fade-in-section {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 1s ease-out, transform 1s ease-out;
+}
+
+.fade-in-section.visible {
+  opacity: 1;
+  transform: none;
+}
+
+pre {
+  white-space: pre-wrap; /* This will preserve whitespace and wrap lines */
+  word-wrap: break-word; /* Optional: Handle long words in a wrapped line */
+}
+
+.shadow-hard{
+  filter: 
+    drop-shadow(1px 1px 0px #bfbfbf)
+    drop-shadow(2px 2px 2px #bfbfbf)
+    drop-shadow(3px 3px 4px #bfbfbf)
+    drop-shadow(4px 4px 6px #bfbfbf)
+}
+
