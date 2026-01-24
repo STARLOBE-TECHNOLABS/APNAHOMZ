@@ -1,6 +1,6 @@
 const mysql = require('mysql2');
 
-// Create a connection pool
+// Create a connection pool using environment variables
 const pool = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'root',
