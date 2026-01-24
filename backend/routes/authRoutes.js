@@ -87,14 +87,28 @@ router.post('/forgot-password', async (req, res) => {
     const updateSql = `UPDATE users SET reset_token = ?, reset_token_expiry = ? WHERE id = ?`;
     await db.query(updateSql, [token, expiry, user.id]);
 
-    // Simulate email
-    const resetLink = `http://localhost:5173/reset-password/${token}`;
-    console.log(`[SIMULATED EMAIL] Password Reset Link for ${email}: ${resetLink}`);
+    // Send Email
+    const resetLink = `${process.env.FRONTEND_URL || 'https://design.apnahomz.com'}/reset-password/${token}`;
     
-    res.json({ message: `Check server console for link (or use: ${resetLink})` });
+    const mailOptions = {
+      from: `"FloorLite Support" <${process.env.SMTP_USER}>`,
+      to: email,
+      subject: 'Password Reset Request',
+      html: `
+        <h3>Password Reset Request</h3>
+        <p>You requested a password reset. Please click the link below to reset your password:</p>
+        <a href="${resetLink}">Reset Password</a>
+        <p>This link is valid for 1 hour.</p>
+        <p>If you didn't request this, please ignore this email.</p>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+    
+    res.json({ message: 'Password reset link sent to your email.' });
   } catch (error) {
     console.error('Forgot password error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Error sending email', error: error.message });
   }
 });
 
