@@ -428,30 +428,12 @@ export default function FloorPlan3DViewer({ plan }) {
       {/* Header */}
       <div className="bg-gray-800 bg-opacity-90 backdrop-blur-sm p-4 text-white border-b border-gray-700 flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold mb-1">
-            3D View: {plan?.name || 'Floor Plan'}
-          </h1>
-          <p className="text-xs text-gray-400">High-fidelity 3D Rendering</p>
+          <img src="https://apnahomz.com/wp-content/uploads/2025/06/webs.png" alt="FloorLite" className="h-10" />
         </div>
         <div className="flex flex-wrap gap-2 items-center">
-          <button
-            onClick={handleDownload}
-            className="flex items-center gap-2 mr-4 px-4 py-2 rounded-lg font-medium transition-all text-sm bg-green-600 hover:bg-green-700 shadow-lg hover:shadow-green-500/30"
-          >
-             <BiDownload size={18} />
-             Download View
-          </button>
+        
 
-          <div className="flex items-center gap-2 mr-2 bg-gray-700 px-3 py-1 rounded-lg border border-gray-600">
-            <label className="text-sm font-medium text-gray-200">Floor:</label>
-            <input 
-              type="color" 
-              value={floorColor} 
-              onChange={(e) => setFloorColor(e.target.value)}
-              className="w-6 h-6 rounded cursor-pointer border-none bg-transparent"
-              title="Change Floor Color"
-            />
-          </div>
+        
           {Object.keys(cameraPositions).map((viewName) => (
             <button
               key={viewName}
@@ -465,6 +447,24 @@ export default function FloorPlan3DViewer({ plan }) {
               {viewName === 'insider' ? 'Insider (FPS)' : viewName.charAt(0).toUpperCase() + viewName.slice(1)} View
             </button>
           ))}
+            <div className="flex items-center gap-2 mr-2 bg-gray-700 px-3 py-1 rounded-lg border border-gray-600">
+            <label className="text-sm font-medium text-gray-200">Floor:</label>
+            <input 
+              type="color" 
+              value={floorColor} 
+              onChange={(e) => setFloorColor(e.target.value)}
+              className="w-6 h-6 rounded cursor-pointer border-none bg-transparent"
+              title="Change Floor Color"
+            />
+          </div>
+
+            <button
+            onClick={handleDownload}
+            className="flex items-center gap-2 mr-4 px-4 py-2 rounded-lg font-medium transition-all text-sm bg-green-600 hover:bg-green-700 shadow-lg hover:shadow-green-500/30"
+          >
+             <BiDownload size={18} />
+             Download View
+          </button>
         </div>
       </div>
 
