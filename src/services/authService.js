@@ -1,5 +1,5 @@
 
-const API_URL = 'http://localhost:5000/api/auth';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/auth';
 const TOKEN_KEY = 'fl-token';
 const CURRENT_USER_KEY = 'fl-current-user';
 
