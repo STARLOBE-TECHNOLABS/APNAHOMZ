@@ -26,3 +26,16 @@ dist-ssr
 # Environment variables
 .env
 .env.*
+
+# Large models
+*.safetensors
+
+# Temp files
+tmp.json
+src/response_*.json
+gitdiff.txt
+gitlog.txt
+
+# Python cache
+__pycache__/
+*.pyc
