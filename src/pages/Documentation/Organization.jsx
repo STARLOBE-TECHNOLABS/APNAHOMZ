@@ -1,4 +1,3 @@
-import React from 'react'
 import { NavLink } from 'react-router-dom'
 
 const Organization = () => {
@@ -17,8 +16,8 @@ const Organization = () => {
          
           <hr className='my-4' />
           <div className="mt-6">
-            <p>
-            Understanding the folder structure and files is essential for customizing or making changes to the FloorLite app code. Below is a breakdown of the key directories and files to help you navigate and manage the application effectively. </p>
+             <p>
+            Understanding the folder structure and files is essential for customizing or making changes to the APNAHOMZ app code. Below is a breakdown of the key directories and files to help you navigate and manage the application effectively. </p>
              <h3 className='font-semibold my-2 text-slate-900 flex gap-1'>
               Frontend - Vite.js (React)
             </h3>

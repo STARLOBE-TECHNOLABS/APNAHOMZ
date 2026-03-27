@@ -41,7 +41,7 @@ const All = () => {
           </div>
         </div>
         <div>
-          <div className='px-2 h-8 bg-blue-500 hover:bg-blue-600 text-white rounded font-medium text-xs flex items-center gap-1 cursor-pointer' onClick={createPlan}>
+          <div className='px-2 h-8 bg-[#142725] hover:bg-[#1a3332] text-white rounded font-medium text-xs flex items-center gap-1 cursor-pointer transition-colors' onClick={createPlan}>
            <HiOutlinePencil /> Create 
           </div>
         </div>

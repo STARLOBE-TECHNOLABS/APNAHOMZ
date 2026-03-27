@@ -1,4 +1,3 @@
-import React from 'react'
 import { NavLink } from 'react-router-dom'
 
 const Support = () => {
@@ -27,7 +26,7 @@ const Support = () => {
             </p>
             <p>
               <a className='text-blue-600 font-semibold' target='_blank' href='https://codecanyon.net/item/floorlite-interactive-floor-plan-creator/53865973/support'>
-                Codecanyon - FloorLite Support
+                Codecanyon - APNAHOMZ Support
               </a>
             </p>
             <br/>

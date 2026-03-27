@@ -100,7 +100,7 @@ const TopBar = ({plan, updatePlan}) => {
         <div className='flex gap-1'>
           <div className='bg-white p-1 shadow-md rounded-md '>
             <NavLink to='/plans/all'>
-              <div className='flex justify-center items-center size-8 hover:bg-slate-100 rounded focus-visible:outline-none focus-visible:ring focus-visible:ring-indigo-300'>
+              <div className='flex justify-center items-center size-8 hover:bg-slate-100 rounded focus-visible:outline-none focus-visible:ring focus-visible:ring-[#B38F4B]/40'>
                 <HiMenu/>
               </div>
             </NavLink>
@@ -118,7 +118,7 @@ const TopBar = ({plan, updatePlan}) => {
 
       <div className='absolute right-6 top-6'>
         <div className='bg-white p-1 shadow-md rounded-md flex gap-1'>
-              <div onClick={download2D} className='flex justify-center items-center gap-1 px-2 h-8 cursor-pointer text-xs text-white bg-blue-500 hover:bg-blue-600 rounded font-medium'>
+              <div onClick={download2D} className='flex justify-center items-center gap-1 px-2 h-8 cursor-pointer text-xs text-white bg-[#142725] hover:bg-[#1a3332] rounded font-medium'>
                 <BiDownload/> Download 2D
               </div>
         </div>

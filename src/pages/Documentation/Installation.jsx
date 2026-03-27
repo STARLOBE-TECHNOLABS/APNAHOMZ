@@ -1,4 +1,3 @@
-import React from 'react'
 import { NavLink } from 'react-router-dom'
 
 const Installation = () => {
@@ -16,7 +15,7 @@ const Installation = () => {
           <hr className='my-4' />
           <div className="mt-6">
             <p>
-            Follow these steps to set up the development environment for the FloorLite project. This guide will help you install all necessary dependencies.
+            Follow these steps to set up the development environment for the APNAHOMZ project. This guide will help you install all necessary dependencies.
             </p>
             <h2 className='font-semibold text-xl my-2 text-slate-900'>
             Prerequisites
@@ -45,16 +44,16 @@ const Installation = () => {
             Vite.js <img src='../../vite.svg' className='h-6' />
             </h2>
             <p>
-            FloorLite is built using Vite.js (https://vitejs.dev/) a modern and lightning-fast build tool that improves the development experience. 
+            APNAHOMZ is built using Vite.js (https://vitejs.dev/) a modern and lightning-fast build tool that improves the development experience. 
             Vite.js is chosen for its speed and efficiency, offering features like instant server start, fast hot module replacement (HMR), and optimized builds for production.
             </p>
           </div>
           <div className="mt-6">
             <h2 className='font-semibold text-xl my-2 text-slate-900'>
-            Setting Up the Project - FloorLiteDemo
+            Setting Up the Project - APNAHOMZ
             </h2>
             <p>
-            Once you open FloorLiteDemo project you can open console, navigate to specific folder and install all dependencies:
+            Once you open APNAHOMZ project you can open console, navigate to specific folder and install all dependencies:
             </p>  
             <pre className='my-6'>
                 <div className='p-4 bg-gray-800 text-white rounded-lg text-sm !whitespace-pre'>
@@ -86,7 +85,7 @@ const Installation = () => {
               </div>
             </pre>
             <p className='bg-green-200 p-2 rounded text-sm'>
-            The FloorLiteDemo project don't require any backend services, so you can immediately open your browser and go to <span className='text-blue-600'>http://localhost:5173/</span> to start using the app.
+            The APNAHOMZ project don't require any backend services, so you can immediately open your browser and go to <span className='text-blue-600'>http://localhost:5173/</span> to start using the app.
             </p>
             <p className='mt-2'>
               To build your app for production you can use a build option from Vite.js
@@ -101,10 +100,10 @@ const Installation = () => {
           </div>
           <div className="mt-6">
             <h2 className='font-semibold text-xl my-2 text-slate-900 flex gap-1'>
-              Setting Up the Project - FloorLite
+              Setting Up the Project - APNAHOMZ
             </h2>
             <p>
-            Full version of FloorLite is build using two projects. So once you open <code>FloorLite/</code> folder you will see two folders:
+            Full version of APNAHOMZ is build using two projects. So once you open <code>FloorLite/</code> folder you will see two folders:
              </p>
              <pre className='my-4'>
               <div className="p-4 bg-gray-800 text-white rounded-lg text-sm">

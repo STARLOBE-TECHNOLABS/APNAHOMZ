@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 
-const Text = ({item}) => {
+const Text = ({ item }) => {
 
   const [textData, setTextData] = useState('')
 
@@ -17,7 +17,7 @@ const Text = ({item}) => {
 
   return (
     <g>
-      <foreignObject width={item.width} height={item.height}>
+      <foreignObject width={item?.width || 80} height={item?.height || 30}>
         <div className='leading-5 whitespace-pre-line ' >
           {textData}
         </div>

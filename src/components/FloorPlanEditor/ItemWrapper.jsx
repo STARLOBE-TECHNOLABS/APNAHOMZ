@@ -256,7 +256,10 @@ const ItemWrapper = ({id, type, itemProps, updateItem, removeItem}) => {
     <g id={id} ref={groupRef} transform={`translate(${item.x + 5} ${item.y + 5}) rotate(${item.rotation}, ${item.width / 2}, ${item.height / 2})`} onClick={handleClickActiveElement}> 
       
       {/* Flor plan item */}
-      {React.createElement(floorPlanItems[type].component, {item, debauncedUpdate})}
+      {floorPlanItems[type] ? 
+        React.createElement(floorPlanItems[type].component, {item, debauncedUpdate}) : 
+        console.warn(`Item with type "${type}" not found in floorPlanItems.`) 
+      }
 
       {/* Selection border */}
       <rect ref={selectionRef} onMouseDown={handleMouseDownMove} onDoubleClick={handleDoubleClick} fill="transparent" strokeWidth={1.5} 

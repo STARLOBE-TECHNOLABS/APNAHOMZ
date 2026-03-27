@@ -1,4 +1,3 @@
-import React from 'react'
 import { NavLink } from 'react-router-dom'
 
 const Introduction = () => {
@@ -14,7 +13,7 @@ const Introduction = () => {
             </h1>
           </header>
           <p className="mt-2 text-xl">
-            Welcome to the documentation for the FloorLite, a web application for creating and editing interactive floor plans.
+            Welcome to the documentation for the APNAHOMZ, a web application for creating and editing interactive floor plans.
             This documentation aims to provide a guide to understanding the basic usage of the app and setting up the development environment.
           </p>
           <hr className='my-4' />
@@ -23,7 +22,7 @@ const Introduction = () => {
             Project Overview  
             </h2>
             <p>
-            The Floor Lite is a web-based application build with React and Node.js that allows users to create and customize basic floor plans.
+            The APNAHOMZ is a web-based application build with React and Node.js that allows users to create and customize basic floor plans.
             </p>
           </div>
           <div className="mt-6">

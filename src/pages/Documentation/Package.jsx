@@ -1,4 +1,3 @@
-import React from 'react'
 import { NavLink } from 'react-router-dom'
 
 const Package = () => {
@@ -16,7 +15,7 @@ const Package = () => {
           <hr className='my-4' />
           <div className="mt-6">
             <p>
-            When you purchase FloorLite from CodeCanyon, the download includes a ZIP package containing all the necessary files to get started. Below is a summary of what you can find in the package:
+            When you purchase APNAHOMZ from CodeCanyon, the download includes a ZIP package containing all the necessary files to get started. Below is a summary of what you can find in the package:
             </p>
             <h2 className='font-semibold text-xl my-3 text-gray-900'>
             What’s Included in the ZIP Package
@@ -26,12 +25,12 @@ const Package = () => {
             Documentation includes step-by-step installation instructions and a guide to understanding the basic usage of the app.</li>
               <li>
                 <p className='text-gray-900'><strong>Demo application (<code>FlorLiteDemo/</code>)</strong>:</p>
-                Separated project with complete source code for demo application. In this project you have eveyrhing you see on demo app. 
+                Separated project with complete source code for demo application. In this project you have everything you see on demo app. 
                 Landing page, documentation and editor is in a one project. Demo version use localStorage as a database. 
               </li>
               <li>
-                <p className='text-gray-900'><strong>Floor Lite (<code>FlorLite/</code>)</strong>:</p>
-                The complete source code of the FloorLite app with node.js as a backend and sqlite as a database.
+                <p className='text-gray-900'><strong>APNAHOMZ (<code>FlorLite/</code>)</strong>:</p>
+                The complete source code of the APNAHOMZ app with node.js as a backend and sqlite as a database.
               </li>
             </ul>
           </div>

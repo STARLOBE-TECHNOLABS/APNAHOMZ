@@ -115,19 +115,7 @@ const usePlan = (planId) => {
   }
 
 
-  return {
-    plan,
-    updatePlanDetails, 
-    addItem,
-    updateItem,
-    removeItem, 
-    addWalls, 
-    updateWalls,
-    updateWallProp,
-    removeWalls, 
-    loading, 
-    error
-  }
+  return { plan, addWalls, addItem, updatePlanDetails, updateItem, removeItem, removeWalls, updateWalls, updateWallProp, loading, error };
 }
 
 export default usePlan;

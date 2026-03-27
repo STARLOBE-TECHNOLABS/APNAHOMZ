@@ -3,22 +3,59 @@
 // 3D Wall component with proper shading and textures
 // ============================================
 
-import React from 'react';
+import React, { useMemo } from 'react';
+import * as THREE from 'three';
+
+// Create a singleton procedural plaster bump map to save memory
+let plasterBumpMap = null;
+export function getPlasterBumpMap() {
+  if (!plasterBumpMap) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 512;
+    const ctx = canvas.getContext('2d');
+
+    // Fill with base color
+    ctx.fillStyle = '#888888';
+    ctx.fillRect(0, 0, 512, 512);
+
+    // Add noise for plaster texture
+    const imgData = ctx.getImageData(0, 0, 512, 512);
+    const data = imgData.data;
+    for (let i = 0; i < data.length; i += 4) {
+      const noise = (Math.random() - 0.5) * 40; // Subtle noise
+      data[i] = Math.max(0, Math.min(255, data[i] + noise));
+      data[i + 1] = Math.max(0, Math.min(255, data[i + 1] + noise));
+      data[i + 2] = Math.max(0, Math.min(255, data[i + 2] + noise));
+    }
+    ctx.putImageData(imgData, 0, 0);
+
+    plasterBumpMap = new THREE.CanvasTexture(canvas);
+    plasterBumpMap.wrapS = THREE.RepeatWrapping;
+    plasterBumpMap.wrapT = THREE.RepeatWrapping;
+    plasterBumpMap.repeat.set(2, 2);
+  }
+  return plasterBumpMap;
+}
 
 // Basic Wall Segment (a simple box)
 export function Wall({ position, rotation, length, height, thickness, color }) {
+  const bumpMap = useMemo(() => getPlasterBumpMap(), []);
+
   return (
-    <mesh 
-      position={position} 
+    <mesh
+      position={position}
       rotation={rotation}
       castShadow
       receiveShadow
     >
       <boxGeometry args={[length, height, thickness]} />
-      <meshStandardMaterial 
-        color={color || "#e8e4df"}
-        roughness={0.8}
-        metalness={0.1}
+      <meshStandardMaterial
+        color={color || "#808080"}
+        roughness={0.95} // Matte interior paint
+        metalness={0.0} // Paint is non-metallic
+        bumpMap={bumpMap}
+        bumpScale={0.003} // Extremely subtle plaster bumps
       />
     </mesh>
   );
@@ -40,34 +77,35 @@ export function ComplexWall({ start, end, height = 2.5, thickness = 0.15, holes 
   // Process holes
   // We need to map hole positions (which are in global 2D coords) to "distance along the wall"
   const openings = holes.map(hole => {
-    // Project hole center onto wall line to find 't' (0 to 1)
-    const hx = hole.x * scale;
-    const hy = hole.y * scale;
-    
-    // Vector from WallStart to Hole
+    // Project hole CENTER onto wall line to find 't' (0 to 1)
+    // Use center of hole bounding box (not top-left) to match 3D model positioning
+    const hx = (hole.x + (hole.width || 0) / 2) * scale;
+    const hy = (hole.y + (hole.height || 0) / 2) * scale;
+
+    // Vector from WallStart to Hole center
     const v1x = hx - x1;
     const v1y = hy - y1;
-    
+
     // Dot product to project
     const dot = (v1x * dx + v1y * dy) / (wallLength * wallLength);
-    
+
     // Hole width in 3D units
     const holeWidth = hole.width * scale;
     const holeHeight = hole.height * scale;
-    
+
     // Distance along wall from start
     const centerDist = dot * wallLength;
-    
+
     // Determine hole Y position (sill height) and vertical height
     let sillHeight = 0;
     let openingHeight = 2.1; // Default door height
 
     if (hole.type === 'window') {
-        sillHeight = 0.9; 
-        openingHeight = 1.2;
+      sillHeight = 0.9;
+      openingHeight = 1.2;
     } else if (hole.type === 'door') {
-        sillHeight = 0;
-        openingHeight = 2.1;
+      sillHeight = 0;
+      openingHeight = 2.1;
     }
 
     return {
@@ -131,7 +169,7 @@ export function ComplexWall({ start, end, height = 2.5, thickness = 0.15, holes 
   }
 
   return (
-    <group position={[x1, 0, y1]} rotation={[0, -angle, 0]}> 
+    <group position={[x1, 0, y1]} rotation={[0, -angle, 0]}>
       {/* Note: ThreeJS rotation is counter-clockwise, and atan2 gives that. 
           But coordinate system might need check. 
           If Z is down (2D Y), and X is right.

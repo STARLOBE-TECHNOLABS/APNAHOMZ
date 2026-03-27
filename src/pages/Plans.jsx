@@ -12,7 +12,7 @@ const Plans = () => {
 
   return (
     <div className='flex min-h-svh w-full bg-slate-50'>
-      <div className='fixed inset-y-0 left-0 w-60 bg-white border-r'>
+      <div className='fixed inset-y-0 left-0 w-60 bg-[#142725] border-r border-white/10'>
         <Navigation />
       </div>
       <main className='flex-1 pl-60'>

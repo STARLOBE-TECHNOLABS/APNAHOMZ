@@ -1,4 +1,3 @@
-import React from 'react'
 import { NavLink } from 'react-router-dom'
 
 const Plans = () => {
@@ -17,7 +16,7 @@ const Plans = () => {
           <hr className='my-4' />
           <div className="mt-6">
             <p>
-              When you open the FloorLite app, you'll be presented with a view of your plans. These plans are organized into three categories: All, Favorite, and Trash. By default, you'll see all your plans first.
+              When you open the APNAHOMZ app, you'll be presented with a view of your plans. These plans are organized into three categories: All, Favorite, and Trash. By default, you'll see all your plans first.
             </p>
             <div className='p-4 my-2'>
               <img className='rounded-md shadow-xl w-full border' src='../../documentation/allplans.png'/>

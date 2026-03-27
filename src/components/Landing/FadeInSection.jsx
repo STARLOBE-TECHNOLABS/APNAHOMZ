@@ -12,8 +12,8 @@ const FadeInSection = (props) => {
         }
       });
     },
-    { threshold: 0.8 }
-  );
+      { threshold: 0.2 }
+    );
 
     observer.observe(domRef.current);
 

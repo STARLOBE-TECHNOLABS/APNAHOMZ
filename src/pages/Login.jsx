@@ -68,9 +68,9 @@ const Login = () => {
           <div className="text-center lg:text-left">
             <div className="flex justify-center lg:justify-start items-center mb-6">
                <img 
-                 src="https://apnahomz.com/wp-content/uploads/2025/06/webs.png" 
+                 src="/landing/logo.png" 
                  alt="ApnaHomz" 
-                 className="h-12 w-auto"
+                 className="h-20 w-auto object-contain"
                />
             </div>
             <h2 className="text-3xl font-extrabold text-gray-900">
@@ -156,7 +156,7 @@ const Login = () => {
                   </div>
                   <div className="relative flex justify-center text-sm">
                     <span className="px-2 bg-white text-gray-500">
-                      New to FloorLite?
+                      New to APNAHOMZ?
                     </span>
                   </div>
                 </div>

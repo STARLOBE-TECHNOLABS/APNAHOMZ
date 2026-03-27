@@ -60,7 +60,7 @@ const PropertyPanel = ({plan, removeItem, removeWalls, updateWallProp, updateIte
         )}
         {element.type === 'item' && element.object.type === 'door' && (
             <button 
-                className='bg-blue-500 p-2 rounded-md hover:bg-blue-600 text-white text-xs font-semibold'
+                className='bg-[#142725] p-2 rounded-md hover:bg-[#1a3332] text-white text-xs font-semibold'
                 onClick={() => updateItem(element.object.id, { flip: !element.object.flip })}
             >
                 Flip Direction

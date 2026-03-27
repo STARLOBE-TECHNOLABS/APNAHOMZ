@@ -1,6 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { createBrowserRouter,redirect, RouterProvider } from 'react-router-dom'
+import { createBrowserRouter, redirect, RouterProvider } from 'react-router-dom'
 import './assets/styles.css'
 
 import { AuthProvider } from '@/context/AuthContext'
@@ -153,11 +153,11 @@ const router = createBrowserRouter([
     element: <ProtectedRoute><FloorPlanViewer /></ProtectedRoute>,
     errorElement: <ErrorPage />
   },
-  
+
 ], {
   // If you upload to subfolder in your server
   // basename: "/floorlite"
-  })
+})
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

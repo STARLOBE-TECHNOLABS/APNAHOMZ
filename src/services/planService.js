@@ -1,3 +1,5 @@
+import { authService } from './authService';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/auth';
 const API_URL = API_BASE_URL.replace('/auth', '/plans');
 const TOKEN_KEY = 'fl-token';
@@ -15,11 +17,16 @@ export const planService = {
     const response = await fetch(API_URL, {
       headers: getAuthHeaders()
     });
-    
+
     if (!response.ok) {
+      if (response.status === 401 || response.status === 403) {
+        authService.logout();
+        window.location.href = '/login';
+        throw new Error('Session expired');
+      }
       throw new Error('Failed to fetch plans');
     }
-    
+
     return await response.json();
   },
 
@@ -27,12 +34,17 @@ export const planService = {
     const response = await fetch(`${API_URL}/${id}`, {
       headers: getAuthHeaders()
     });
-    
+
     if (!response.ok) {
+      if (response.status === 401 || response.status === 403) {
+        authService.logout();
+        window.location.href = '/login';
+        throw new Error('Session expired');
+      }
       if (response.status === 404) return null;
       throw new Error('Failed to fetch plan');
     }
-    
+
     return await response.json();
   },
 
@@ -50,12 +62,17 @@ export const planService = {
       headers: getAuthHeaders(),
       body: JSON.stringify(payload)
     });
-    
+
     if (!response.ok) {
+      if (response.status === 401 || response.status === 403) {
+        authService.logout();
+        window.location.href = '/login';
+        throw new Error('Session expired');
+      }
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.message || 'Failed to create plan');
     }
-    
+
     return await response.json();
   },
 
@@ -71,12 +88,17 @@ export const planService = {
       headers: getAuthHeaders(),
       body: JSON.stringify(payload)
     });
-    
+
     if (!response.ok) {
+      if (response.status === 401 || response.status === 403) {
+        authService.logout();
+        window.location.href = '/login';
+        throw new Error('Session expired');
+      }
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.message || 'Failed to update plan');
     }
-    
+
     return await response.json();
   },
 
@@ -85,11 +107,16 @@ export const planService = {
       method: 'DELETE',
       headers: getAuthHeaders()
     });
-    
+
     if (!response.ok) {
+      if (response.status === 401 || response.status === 403) {
+        authService.logout();
+        window.location.href = '/login';
+        throw new Error('Session expired');
+      }
       throw new Error('Failed to delete plan');
     }
-    
+
     return await response.json();
   }
 };

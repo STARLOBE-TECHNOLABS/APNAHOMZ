@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { nanoid } from "nanoid";
-import { initialPlans } from "./initialPlans";
 import { useAuth } from "../context/AuthContext";
 import { planService } from "../services/planService";
 
@@ -20,38 +19,17 @@ const usePlans = () => {
       try {
         const fetchedPlans = await planService.getAllPlans();
         
-        if (fetchedPlans.length === 0) {
-            // No plans found in DB, initialize with default plans
-            console.log("No plans found. Initializing default plans...");
-            
-            const promises = initialPlans.map(async (plan) => {
-                const newPlan = {
-                    ...plan,
-                    id: nanoid(12), // Generate new unique ID for the new user
-                    createdAt: Date.now(),
-                    updatedAt: Date.now()
-                };
-                
-                await planService.createPlan(newPlan);
-                return newPlan;
-            });
-            
-            const results = await Promise.all(promises);
-            setPlans(results);
-        } else {
-            // Format existing plans from DB
+        // Format plans from DB (no auto-creation; user clicks Create to add a plan)
             const formattedPlans = fetchedPlans.map(p => {
-                // Merge data content with top-level props
                 return {
                     ...p.data,
                     id: p.id,
                     name: p.name,
-                    createdAt: p.created_at, // DB uses created_at
+                    createdAt: p.created_at,
                     updatedAt: p.updated_at
                 };
             });
-            setPlans(formattedPlans)
-        }
+            setPlans(formattedPlans);
       } catch (err) {
         console.error("Error fetching/initializing plans:", err);
         setError(err);

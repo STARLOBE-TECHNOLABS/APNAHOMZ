@@ -2,28 +2,112 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: 'Inter', Arial, Helvetica, sans-serif;
-  @apply text-slate-800
-}
-
-/* Fade In Effect */
-
-@keyframes fadeIn {
-  to {
-    opacity: 1;
+@layer base {
+  :root {
+    --brand-dark: #142725;
+    --brand-gold: #E3D27D;
+    --brand-green: #4F6D56;
+    --brand-light: #F8F9FA;
+    /* Landing: interior-design editorial */
+    --landing-bg: #FAFAF9;
+    --landing-ink: #1C1917;
+    --landing-muted: #57534E;
+    --landing-border: #E7E5E4;
+    --landing-card: #FFFFFF;
+    --landing-accent: #5B7663;
+    --landing-accent-light: #E8EDE9;
+    --landing-dark: #142725;
+    --landing-gold: #B45309;
+    --landing-gold-bg: #FEF3C7;
+    --font-display: 'DM Serif Display', Georgia, serif;
+    --font-body: 'Inter', system-ui, sans-serif;
   }
 }
 
-.landing-page {
-  opacity: 0.6;
-  animation: fadeIn 0.6s forwards;
+body {
+  font-family: 'Inter', Arial, Helvetica, sans-serif;
+  @apply text-slate-800 bg-slate-50;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scanner {
+  0% {
+    left: 0;
+  }
+
+  100% {
+    left: 100%;
+  }
+}
+
+@keyframes revealWipe {
+  0% {
+    clip-path: inset(0 0 0 0);
+  }
+
+  100% {
+    clip-path: inset(0 0 0 100%);
+  }
+}
+
+@keyframes drawLine {
+  from {
+    stroke-dashoffset: 1000;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes blueprintFade {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.8s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 1s ease-out forwards;
 }
 
 .fade-in-section {
   opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 1s ease-out, transform 1s ease-out;
+  transform: translateY(30px);
+  transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1), transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .fade-in-section.visible {
@@ -31,16 +115,170 @@ body {
   transform: none;
 }
 
+/* Blueprint Grid Utility */
+.blueprint-grid {
+  background-size: 40px 40px;
+  background-image:
+    linear-gradient(to right, rgba(20, 39, 37, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(20, 39, 37, 0.05) 1px, transparent 1px);
+  background-color: #F8F9FA;
+}
+
+.blueprint-grid-fine {
+  background-size: 10px 10px;
+  background-image:
+    linear-gradient(to right, rgba(20, 39, 37, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(20, 39, 37, 0.02) 1px, transparent 1px);
+}
+
+/* Premium Utilities */
+.pro-glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(20, 39, 37, 0.05);
+}
+
+.glass-morphism {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.hero-gradient {
+  background: radial-gradient(circle at top right, rgba(227, 210, 125, 0.1), transparent),
+    radial-gradient(circle at bottom left, rgba(79, 109, 86, 0.1), transparent);
+}
+
+.step-card {
+  @apply relative overflow-hidden rounded-2xl transition-all duration-500 hover:shadow-2xl hover:-translate-y-2;
+}
+
+.btn-premium {
+  @apply px-8 py-3 bg-[#E3D27D] hover:bg-[#d4c16a] text-[#142725] rounded-full font-semibold transition-all duration-300 shadow-lg hover:shadow-xl active:scale-95 flex items-center gap-2;
+}
+
+/* Drafting Animations */
+.path-draw {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: drawLine 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.blueprint-animate {
+  opacity: 0;
+  animation: blueprintFade 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
 pre {
-  white-space: pre-wrap; /* This will preserve whitespace and wrap lines */
-  word-wrap: break-word; /* Optional: Handle long words in a wrapped line */
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
-.shadow-hard{
-  filter: 
-    drop-shadow(1px 1px 0px #bfbfbf)
-    drop-shadow(2px 2px 2px #bfbfbf)
-    drop-shadow(3px 3px 4px #bfbfbf)
-    drop-shadow(4px 4px 6px #bfbfbf)
+/* ========== Landing page: interior-style bg (visible) ========== */
+.landing-page {
+  font-family: var(--font-body);
+  min-height: 100vh;
+  /* Warm base – clearly visible */
+  background-color: #F2F0EC;
+  background-image:
+    radial-gradient(circle, rgba(20, 39, 37, 0.07) 2px, transparent 2px);
+  background-size: 32px 32px;
+  background-attachment: fixed;
+  color: var(--landing-ink);
+  position: relative;
 }
-
+.landing-page::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 100% 70% at 90% 10%, rgba(91, 118, 99, 0.12) 0%, transparent 50%),
+    radial-gradient(ellipse 90% 60% at 10% 90%, rgba(91, 118, 99, 0.10) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 40% at 50% 50%, rgba(20, 39, 37, 0.05) 0%, transparent 60%);
+}
+.landing-page .font-display {
+  font-family: var(--font-display);
+}
+.landing-page .section-padding {
+  padding-top: 5rem;
+  padding-bottom: 5rem;
+}
+@media (min-width: 768px) {
+  .landing-page .section-padding {
+    padding-top: 6rem;
+    padding-bottom: 6rem;
+  }
+}
+.landing-page .btn-primary {
+  background: var(--landing-dark);
+  color: white;
+  font-weight: 600;
+  padding: 0.875rem 1.75rem;
+  border-radius: 9999px;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 4px 14px rgba(20, 39, 37, 0.25);
+}
+.landing-page .btn-primary:hover {
+  background: #1a3332;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(20, 39, 37, 0.3);
+}
+.landing-page .btn-secondary {
+  background: var(--landing-card);
+  color: var(--landing-ink);
+  font-weight: 600;
+  padding: 0.875rem 1.75rem;
+  border-radius: 9999px;
+  border: 2px solid var(--landing-border);
+  transition: border-color 0.2s, background 0.2s;
+}
+.landing-page .btn-secondary:hover {
+  border-color: var(--landing-accent);
+  background: var(--landing-accent-light);
+}
+.landing-page .pill {
+  display: inline-block;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--landing-accent);
+  background: var(--landing-accent-light);
+  border-radius: 9999px;
+}
+.landing-page .card-surface {
+  background: var(--landing-card);
+  border: 1px solid var(--landing-border);
+  border-radius: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.landing-page .step-connector {
+  height: 2px;
+  background: linear-gradient(90deg, var(--landing-border), var(--landing-accent) 50%, var(--landing-border));
+  opacity: 0.6;
+}
+.landing-page .landing-workflow-card {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.landing-page .landing-workflow-card:hover {
+  transform: translateY(-4px);
+}
+.landing-page .scanner-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--brand-gold);
+  box-shadow: 0 0 20px rgba(180, 83, 9, 0.4);
+  animation: scanner 4s ease-in-out infinite alternate;
+}
+@keyframes float-subtle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.landing-float {
+  animation: float-subtle 6s ease-in-out infinite;
+}

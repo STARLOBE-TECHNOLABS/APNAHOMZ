@@ -116,7 +116,7 @@ const FloorPlanEditor = () => {
         {/* NEW: 3D View Button */}
         <button
           onClick={() => setShow3D(true)}
-          className="fixed bottom-24 right-8 z-40 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-2 py-2 rounded-full shadow-2xl flex items-center gap-3 transition-all transform hover:scale-105"
+          className="fixed bottom-24 right-8 z-40 bg-[#142725] hover:bg-[#1a3332] text-white px-2 py-2 rounded-full shadow-2xl flex items-center gap-3 transition-all transform hover:scale-105"
           title="View in 3D"
         >
           <FaCube className="text-2xl" />

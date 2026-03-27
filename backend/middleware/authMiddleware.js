@@ -11,15 +11,19 @@ const authenticateToken = (req, res, next) => {
     return res.status(401).json({ message: 'Access denied. No token provided.' });
   }
 
-  jwt.verify(token, SECRET_KEY, (err, user) => {
-    if (err) {
-      return res.status(403).json({ message: 'Invalid or expired token.' });
-    }
-    
-    // Attach user info to request object
-    req.user = user;
-    next();
-  });
+  try {
+    jwt.verify(token, SECRET_KEY, (err, user) => {
+      if (err) {
+        return res.status(403).json({ message: 'Invalid or expired token.' });
+      }
+
+      // Attach user info to request object
+      req.user = user;
+      next();
+    });
+  } catch (error) {
+    return res.status(403).json({ message: 'Invalid or expired token.' });
+  }
 };
 
 module.exports = authenticateToken;
