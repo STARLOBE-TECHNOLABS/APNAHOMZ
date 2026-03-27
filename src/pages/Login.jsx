@@ -68,8 +68,8 @@ const Login = () => {
           <div className="text-center lg:text-left">
             <div className="flex justify-center lg:justify-start items-center mb-6">
                <img 
-                 src="/landing/logo.png" 
-                 alt="ApnaHomz" 
+                 src="/landing/logo_dark.png" 
+                 alt="APNAHOMZ" 
                  className="h-20 w-auto object-contain"
                />
             </div>

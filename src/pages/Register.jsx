@@ -161,7 +161,7 @@ const Register = () => {
           <div className="text-center lg:text-left">
             <div className="flex justify-center lg:justify-start items-center mb-6">
                <img 
-                 src="/landing/logo.png" 
+                 src="/landing/logo_dark.png" 
                  alt="ApnaHomz" 
                  className="h-20 w-auto object-contain"
                />
