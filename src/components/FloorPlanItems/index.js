@@ -946,14 +946,15 @@ const floorPlanItems = {
   }
 }
 
-import { BiRestaurant, BiDish, BiBed, BiBath, BiDesktop, BiDoorOpen, BiCycling, BiCabinet, BiBulb, BiLayer } from "react-icons/bi";
-import { MdOutlineLocalLaundryService, MdOutlineDeck } from "react-icons/md";
+import { BiRestaurant, BiDish, BiBath, BiDoorOpen, BiCabinet, BiBulb } from "react-icons/bi";
+import { MdOutlineLocalLaundryService } from "react-icons/md";
+import { PiCouchBold, PiBedBold, PiDesktopBold, PiPlantBold, PiWarehouseBold } from "react-icons/pi";
 
 export const furnitureCategories = [
   {
     id: "livingRoom",
     label: "Living Room",
-    icon: BiLayer,
+    icon: PiCouchBold,
     items: ["sofa", "lShapeSofa", "armchair", "reclinerChair", "ottoman", "coffeeTable", "sideTable", "tv", "bookshelf", "displayCabinet", "cabinet", "lamp", "chandelier", "rug", "curtains", "flower", "flower2"]
   },
   {
@@ -969,22 +970,10 @@ export const furnitureCategories = [
     items: ["baseCabinet", "wallCabinet", "tallPantryUnit", "kitchenIsland", "breakfastCounter", "barStool", "spiceRack", "pullOutBasket", "plateRack", "refrigerator", "sink", "stove", "worktop"]
   },
   {
-    id: "masterBedroom",
-    label: "Master Bedroom",
-    icon: BiBed,
-    items: ["kingBed", "headboard", "bedsideTable", "wardrobeSliding", "wardrobeHinged", "walkInCloset", "dresser", "chestOfDrawers", "vanityTable", "accentChair"]
-  },
-  {
-    id: "guestBedroom",
-    label: "Guest Bedroom",
-    icon: BiBed,
-    items: ["guestDoubleBed", "guestSingleBed", "guestWardrobe", "guestBedsideTable", "studyDesk", "studyChair", "wallMirror", "luggageRack"]
-  },
-  {
     id: "bedroom",
     label: "Bedroom",
-    icon: BiBed,
-    items: ["bad", "singleBad", "wordrobe"]
+    icon: PiBedBold,
+    items: ["kingBed", "bad", "singleBad", "bunkBed", "headboard", "bedsideTable", "guestBedsideTable", "wardrobeSliding", "wardrobeHinged", "wordrobe", "guestWardrobe", "walkInCloset", "dresser", "chestOfDrawers", "vanityTable", "accentChair", "studyDesk", "studyChair", "wallMirror", "luggageRack", "toyStorage", "bookshelf", "beanBag", "pinBoard"]
   },
   {
     id: "bathroom",
@@ -993,15 +982,9 @@ export const furnitureCategories = [
     items: ["bath", "toilet", "sink", "vanityCabinet", "mirrorCabinet", "showerEnclosure", "wallCabinet", "towelRack", "medicineCabinet", "laundryBasket", "washingMachine"]
   },
   {
-    id: "kidsBedroom",
-    label: "Kids Bedroom",
-    icon: BiDesktop,
-    items: ["singleBad", "bunkBed", "studyDesk", "studyChair", "toyStorage", "bookshelf", "wardrobeSliding", "wardrobeHinged", "beanBag", "pinBoard"]
-  },
-  {
     id: "office",
     label: "Home Office",
-    icon: BiDesktop,
+    icon: PiDesktopBold,
     items: ["officeDesk", "executiveDesk", "studyDesk", "ergonomicChair", "visitorChair", "filingCabinet", "bookshelf", "wallShelves", "deskLamp", "whiteboard", "desktopLaptop"]
   },
   {
@@ -1019,13 +1002,13 @@ export const furnitureCategories = [
   {
     id: "outdoor",
     label: "Balcony / Terrace",
-    icon: MdOutlineDeck,
+    icon: PiPlantBold,
     items: ["outdoorChair", "outdoorSofa", "coffeeTable", "swingChair", "planter", "storageBench", "barbecueStation"]
   },
   {
     id: "garage",
     label: "Garage",
-    icon: BiCycling,
+    icon: PiWarehouseBold,
     items: ["storageRack", "toolCabinet", "workbench", "wallHook", "bicycleStand"]
   }
 ]

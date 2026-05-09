@@ -1,8 +1,8 @@
 import React, { useRef, useState } from 'react'
 import { nanoid } from "nanoid"
-import { PiDoorBold } from 'react-icons/pi'
+import { PiDoorBold, PiPencilLineBold } from 'react-icons/pi'
 import { TbWindow } from 'react-icons/tb'
-import { BiCuboid, BiText, BiChevronLeft, BiSearch } from "react-icons/bi";
+import { BiText, BiChevronLeft, BiSearch } from "react-icons/bi";
 import { useAppStore } from '@/store/app';
 import { useNotification } from '@/context/NotificationContext';
 import floorPlanItems, { furnitureCategories } from '../FloorPlanItems';
@@ -148,7 +148,7 @@ const Panel = ({ addItem }) => {
             className={`flex justify-center items-center size-9 rounded-xl cursor-pointer transition-all duration-200 ` + (wallDrawing ? 'bg-[#B38F4B] text-white shadow-lg' : 'bg-white hover:bg-[#B38F4B]/10 text-slate-500')}
             onClick={startDrawingWalls}
           >
-            <BiCuboid size={20} />
+            <PiPencilLineBold size={20} />
           </div>
 
           <div
@@ -188,7 +188,7 @@ const Panel = ({ addItem }) => {
               className={`flex justify-center items-center size-9 rounded-xl cursor-pointer transition-all duration-200 ` + (selectedCategory?.id === cat.id ? 'bg-[#B38F4B] text-white shadow-lg' : 'bg-white hover:bg-[#B38F4B]/10 text-slate-500')}
               onClick={(e) => toggleCategory(cat, e)}
             >
-              {cat.icon ? <cat.icon size={20} /> : <BiCuboid size={20} />}
+              {cat.icon ? <cat.icon size={20} /> : <PiPencilLineBold size={20} />}
             </div>
           ))}
         </div>
