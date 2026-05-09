@@ -8,6 +8,7 @@ import { BiX, BiCheck } from 'react-icons/bi';
 const MiniItem = ({ item, isSelected, onClick }) => {
     const meshRef = useRef();
 
+    //updated
     return (
         <mesh
             ref={meshRef}

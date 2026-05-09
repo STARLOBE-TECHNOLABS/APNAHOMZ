@@ -102,6 +102,7 @@ router.post('/forgot-password', async (req, res) => {
     // Send Email
     const resetLink = `${process.env.FRONTEND_URL || 'https://design.apnahomz.com'}/reset-password/${token}`;
     
+    //updated
     const mailOptions = {
       from: `"FloorLite Support" <${process.env.SMTP_USER}>`,
       to: email,
