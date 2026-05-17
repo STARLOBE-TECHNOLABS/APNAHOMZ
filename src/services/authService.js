@@ -3,11 +3,30 @@ import { normalizeApiAuthUrl } from '../utils/apiUrl';
 const API_URL = normalizeApiAuthUrl(import.meta.env.VITE_API_URL);
 const TOKEN_KEY = 'fl-token';
 const CURRENT_USER_KEY = 'fl-current-user';
+const REQUEST_TIMEOUT_MS = 25000;
+
+async function fetchWithTimeout(url, options = {}) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      throw new Error('Request timed out. Check that the API is reachable.');
+    }
+    if (error.message === 'Failed to fetch') {
+      throw new Error('Cannot reach the API. Confirm VITE_API_URL and upload the latest build.');
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
 
 export const authService = {
   login: async (username, password) => {
     try {
-      const response = await fetch(`${API_URL}/login`, {
+      const response = await fetchWithTimeout(`${API_URL}/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

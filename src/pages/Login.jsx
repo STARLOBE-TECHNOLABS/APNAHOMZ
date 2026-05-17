@@ -33,16 +33,17 @@ const Login = () => {
     if (!validateInput()) return;
 
     setLoading(true);
-
-    const result = await login(username, password);
-    
-    if (result.success) {
-      notify({ content: "Successfully logged in", type: "success" }); // Note: NotificationContext doesn't have explicit success style in switch but defaults to white/slate. Let's use default.
-      navigate(from, { replace: true });
-    } else {
-      notify({ content: result.error || "Login failed", type: "error" });
+    try {
+      const result = await login(username, password);
+      if (result.success) {
+        notify({ content: "Successfully logged in", type: "success" });
+        navigate(from, { replace: true });
+      } else {
+        notify({ content: result.error || "Login failed", type: "error" });
+      }
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
