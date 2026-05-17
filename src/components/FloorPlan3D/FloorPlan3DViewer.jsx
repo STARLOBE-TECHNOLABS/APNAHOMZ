@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unknown-property, react/prop-types, react/display-name */
 import React, { useState, Suspense, useMemo, useEffect, useRef, useCallback } from 'react';
 import { Canvas, useThree, useFrame } from '@react-three/fiber';
-import { OrbitControls, PerspectiveCamera, Grid as ThreeGrid, Environment, PointerLockControls, ContactShadows } from '@react-three/drei';
+import { OrbitControls, PerspectiveCamera, Grid as ThreeGrid, PointerLockControls, ContactShadows } from '@react-three/drei';
 import * as THREE from 'three';
 import { BiDownload } from 'react-icons/bi';
 import { ComplexWall, getPlasterBumpMap } from './Wall';
@@ -589,8 +589,6 @@ function Scene3D({ plan, floorColor, showRoof }) {
         );
       })}
 
-      {/* Environment lighting for better visuals */}
-      <Environment preset="apartment" background={false} />
     </>
   );
 }

@@ -1,7 +1,7 @@
 import { authService } from './authService';
+import { apiPathFromAuthBase } from '../utils/apiUrl';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/auth';
-const API_URL = API_BASE_URL.replace('/auth', '/ai');
+const API_URL = apiPathFromAuthBase(import.meta.env.VITE_API_URL, 'ai');
 const TOKEN_KEY = 'fl-token';
 
 export const aiService = {

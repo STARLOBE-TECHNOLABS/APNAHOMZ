@@ -1,6 +1,6 @@
 import React, { useRef, useState, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Center, Environment } from '@react-three/drei';
+import { OrbitControls, Center } from '@react-three/drei';
 import * as THREE from 'three';
 import { BiX, BiCheck } from 'react-icons/bi';
 
@@ -85,7 +85,7 @@ const Interactive3DSelector = ({ plan, onConfirm, onCancel }) => {
                         <Canvas camera={{ position: [0, 15, 15], fov: 50 }}>
                             <ambientLight intensity={0.5} />
                             <directionalLight position={[10, 10, 5]} intensity={1} />
-                            <Environment preset="city" />
+                            <hemisphereLight intensity={0.35} />
 
                             <Center>
                                 <group>
