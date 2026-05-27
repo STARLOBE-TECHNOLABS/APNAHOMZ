@@ -7,6 +7,9 @@ import { AuthProvider } from '@/context/AuthContext'
 import { NotificationProvider } from '@/context/NotificationContext'
 import Login from '@/pages/Login'
 import ProtectedRoute from './components/ProtectedRoute'
+import GateActiveSubscription from './components/GateActiveSubscription'
+import RequireActivePlan from './components/RequireActivePlan'
+import PlansIndexRedirect from './components/PlansIndexRedirect'
 import ForgotPassword from './pages/ForgotPassword'
 import Register from './pages/Register'
 import ResetPassword from './pages/ResetPassword'
@@ -18,6 +21,7 @@ import Landing from './pages/Landing.jsx'
 import All from './components/Plans/All.jsx'
 import Favorite from './components/Plans/Favorite.jsx'
 import Trash from './components/Plans/Trash.jsx'
+import PlansDataLayout from './components/Plans/PlansDataLayout.jsx'
 import Billing from './pages/Billing.jsx'
 import Plans from './pages/Plans.jsx'
 
@@ -72,90 +76,101 @@ const router = createBrowserRouter([
     element: <ProtectedRoute><Plans /></ProtectedRoute>,
     errorElement: <ErrorPage />,
     children: [
+      { index: true, element: <PlansIndexRedirect /> },
+      { path: "billing", element: <Billing /> },
       {
-        path: "/plans/all",
-        element: <All />
-      },
-      {
-        path: "/plans/favorite",
-        element: <Favorite />
-      },
-      {
-        path: "/plans/trash",
-        element: <Trash />
-      },
-      {
-        path: "/plans/billing",
-        element: <Billing />
-      },
-      {
-        path: "/plans/documentation",
-        element: <Main />,
+        element: <RequireActivePlan />,
         children: [
           {
-            index: true,
-            loader: () => redirect('introduction'),
+            element: <PlansDataLayout />,
+            children: [
+              { path: "all", element: <All /> },
+              { path: "favorite", element: <Favorite /> },
+              { path: "trash", element: <Trash /> },
+            ],
           },
           {
-            path: "introduction",
-            element: <Introduction />,
-          },
-          {
-            path: "installation",
-            element: <Installation />,
-          },
-          {
-            path: "package",
-            element: <Package />,
-          },
-          {
-            path: "organization",
-            element: <Organization />,
-          },
-          {
-            path: "plans",
-            element: <DocPlans />,
-          },
-          {
-            path: "newplan",
-            element: <NewPlan />,
-          },
-          {
-            path: "drawingwalls",
-            element: <DrawingWalls />,
-          },
-          {
-            path: "addingfurnishing",
-            element: <AddingFurnishing />,
-          },
-          {
-            path: "addingtext",
-            element: <AddingText />,
-          },
-          {
-            path: "sharing",
-            element: <Sharing />,
-          },
-          {
-            path: "support",
-            element: <Support />,
-          },
-          {
-            path: "changelog",
-            element: <ChangeLog />,
+            path: "documentation",
+            element: <Main />,
+            children: [
+              {
+                index: true,
+                loader: () => redirect('introduction'),
+              },
+              {
+                path: "introduction",
+                element: <Introduction />,
+              },
+              {
+                path: "installation",
+                element: <Installation />,
+              },
+              {
+                path: "package",
+                element: <Package />,
+              },
+              {
+                path: "organization",
+                element: <Organization />,
+              },
+              {
+                path: "plans",
+                element: <DocPlans />,
+              },
+              {
+                path: "newplan",
+                element: <NewPlan />,
+              },
+              {
+                path: "drawingwalls",
+                element: <DrawingWalls />,
+              },
+              {
+                path: "addingfurnishing",
+                element: <AddingFurnishing />,
+              },
+              {
+                path: "addingtext",
+                element: <AddingText />,
+              },
+              {
+                path: "sharing",
+                element: <Sharing />,
+              },
+              {
+                path: "support",
+                element: <Support />,
+              },
+              {
+                path: "changelog",
+                element: <ChangeLog />,
+              }
+            ]
           }
         ]
-      }
+      },
     ]
   },
   {
     path: "/editor/:planId",
-    element: <ProtectedRoute><FloorPlanEditor /></ProtectedRoute>,
+    element: (
+      <ProtectedRoute>
+        <GateActiveSubscription>
+          <FloorPlanEditor />
+        </GateActiveSubscription>
+      </ProtectedRoute>
+    ),
     errorElement: <ErrorPage />
   },
   {
     path: "/view/:planId",
-    element: <ProtectedRoute><FloorPlanViewer /></ProtectedRoute>,
+    element: (
+      <ProtectedRoute>
+        <GateActiveSubscription>
+          <FloorPlanViewer />
+        </GateActiveSubscription>
+      </ProtectedRoute>
+    ),
     errorElement: <ErrorPage />
   },
 

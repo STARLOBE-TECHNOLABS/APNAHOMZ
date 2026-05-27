@@ -65,7 +65,7 @@ const Register = () => {
     
     if (result.success) {
       notify({ content: "Account created successfully!", type: "success" });
-      navigate('/plans/all');
+      navigate('/plans/billing');
     } else {
       notify({ content: result.error || "Registration failed", type: "error" });
     }

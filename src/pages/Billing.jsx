@@ -1,4 +1,5 @@
 import { BiRefresh } from 'react-icons/bi';
+import { useLocation } from 'react-router-dom';
 import PlanCards from '../components/Billing/PlanCards';
 import { useBilling } from '../hooks/useBilling';
 
@@ -19,6 +20,9 @@ const formatDate = (date) => {
 };
 
 const Billing = () => {
+  const location = useLocation();
+  const subscriptionHint = location.state?.subscriptionRequired;
+
   const {
     plans,
     entitlement,
@@ -52,6 +56,12 @@ const Billing = () => {
           <BiRefresh /> Refresh
         </button>
       </div>
+
+      {subscriptionHint && (
+        <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          Choose a plan below to unlock the 2D editor, 3D view, documentation, and AI features included in your package.
+        </div>
+      )}
 
       {error && (
         <div className="mt-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">

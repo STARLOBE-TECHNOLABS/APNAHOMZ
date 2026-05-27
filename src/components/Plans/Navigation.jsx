@@ -8,7 +8,8 @@ const Navigation = () => {
   const { entitlement } = useBilling({ autoLoad: Boolean(user) });
   const used = entitlement?.renderUsed ?? 0;
   const limit = entitlement?.renderLimit ?? 0;
-  
+  const hasActivePlan = Boolean(entitlement?.active);
+
   return (
     <nav className='flex h-full min-h-0 flex-col text-white'>
             <div className='p-6'>
@@ -25,12 +26,20 @@ const Navigation = () => {
               <div className='my-2 text-white/50 text-xs uppercase'>
                 Plans
               </div>
-              <NavLink className="[&.active]:bg-[#B38F4B]/30 [&.active]:text-[#B38F4B] hover:bg-white/10 text-white/90 px-2 py-1 rounded-md flex items-center gap-2 border-l-2 border-transparent [&.active]:border-[#B38F4B]" to={'all'} >
-                <HiViewList /> All</NavLink>
-              <NavLink className="[&.active]:bg-[#B38F4B]/30 [&.active]:text-[#B38F4B] hover:bg-white/10 text-white/90 px-2 py-1 rounded-md flex items-center gap-2 border-l-2 border-transparent [&.active]:border-[#B38F4B]" to={"favorite"} >
-                <HiOutlineStar/> Favorite</NavLink>
-              <NavLink className="[&.active]:bg-[#B38F4B]/30 [&.active]:text-[#B38F4B] hover:bg-white/10 text-white/90 px-2 py-1 rounded-md flex items-center gap-2 border-l-2 border-transparent [&.active]:border-[#B38F4B]" to={"trash"}>
-                <HiOutlineTrash />Trash</NavLink>
+              {hasActivePlan ? (
+                <>
+                  <NavLink className="[&.active]:bg-[#B38F4B]/30 [&.active]:text-[#B38F4B] hover:bg-white/10 text-white/90 px-2 py-1 rounded-md flex items-center gap-2 border-l-2 border-transparent [&.active]:border-[#B38F4B]" to={'all'} >
+                    <HiViewList /> All</NavLink>
+                  <NavLink className="[&.active]:bg-[#B38F4B]/30 [&.active]:text-[#B38F4B] hover:bg-white/10 text-white/90 px-2 py-1 rounded-md flex items-center gap-2 border-l-2 border-transparent [&.active]:border-[#B38F4B]" to={"favorite"} >
+                    <HiOutlineStar/> Favorite</NavLink>
+                  <NavLink className="[&.active]:bg-[#B38F4B]/30 [&.active]:text-[#B38F4B] hover:bg-white/10 text-white/90 px-2 py-1 rounded-md flex items-center gap-2 border-l-2 border-transparent [&.active]:border-[#B38F4B]" to={"trash"}>
+                    <HiOutlineTrash />Trash</NavLink>
+                </>
+              ) : (
+                <div className="rounded-md border border-white/10 bg-white/5 px-2 py-2 text-xs font-normal text-white/70">
+                  Buy a plan below to unlock 2D, 3D, and AI.
+                </div>
+              )}
               <NavLink className="[&.active]:bg-[#B38F4B]/30 [&.active]:text-[#B38F4B] hover:bg-white/10 text-white/90 px-2 py-1 rounded-md flex items-center gap-2 border-l-2 border-transparent [&.active]:border-[#B38F4B]" to={"billing"}>
                 <HiCreditCard />Billing
                 <span className='ml-auto rounded bg-white/10 px-1.5 py-0.5 text-[10px] text-white/70'>

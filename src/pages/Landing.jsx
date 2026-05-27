@@ -286,7 +286,7 @@ const Landing = () => {
               className="h-16 md:h-20 lg:h-24 w-auto object-contain"
             />
           </NavLink>
-          <nav className="hidden md:flex items-center gap-8">
+          <nav className="hidden md:flex items-center gap-6 lg:gap-8">
             <a href="#how-it-works" className="text-sm font-medium text-white/80 hover:text-white transition-colors">
               How it works
             </a>
@@ -296,12 +296,23 @@ const Landing = () => {
             <a href="#features" className="text-sm font-medium text-white/80 hover:text-white transition-colors">
               Features
             </a>
-            <NavLink to="/plans/all">
+            <NavLink to="/login" className="text-sm font-medium text-white/80 hover:text-white transition-colors">
+              Sign in
+            </NavLink>
+            <NavLink to="/register">
               <button type="button" className="bg-white text-[#142725] hover:bg-white/90 font-semibold text-sm px-5 py-2.5 rounded-full transition-all flex items-center gap-2">
                 <BiPencil className="text-lg" /> Get started
               </button>
             </NavLink>
           </nav>
+          <div className="flex md:hidden items-center gap-2">
+            <NavLink to="/login" className="text-xs font-semibold text-white/90 px-3 py-2 rounded-full border border-white/20">
+              Sign in
+            </NavLink>
+            <NavLink to="/register" className="text-xs font-semibold bg-white text-[#142725] px-3 py-2 rounded-full">
+              Register
+            </NavLink>
+          </div>
         </div>
       </header>
 
@@ -317,15 +328,21 @@ const Landing = () => {
               <p className="text-lg md:text-xl text-[var(--landing-muted)] mb-10 max-w-2xl mx-auto leading-relaxed">
                 Draw floor plans with precision, furnish with curated assets, view in real-time 3D, then turn your scene into magazine-quality imagery—layout preserved, style in your control.
               </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <NavLink to="/plans/all">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 flex-wrap">
+                <NavLink to="/register">
                   <button type="button" className="btn-primary px-8 py-4 text-base flex items-center gap-2">
-                    <BiPencil className="text-xl" /> Start designing
+                    <BiPencil className="text-xl" /> Create account
                   </button>
                 </NavLink>
                 <a href="#how-it-works" className="btn-secondary flex items-center gap-2">
                   See how it works <HiArrowRight className="text-lg" />
                 </a>
+                <NavLink
+                  to="/login"
+                  className="text-sm text-[var(--landing-muted)] hover:text-[var(--landing-ink)] w-full sm:w-auto text-center"
+                >
+                  Already registered? <span className="font-semibold text-[var(--landing-accent)]">Sign in</span>
+                </NavLink>
               </div>
             </FadeInSection>
           </section>
@@ -373,9 +390,9 @@ const Landing = () => {
                 <p className="text-[var(--landing-muted)] mb-8">
                   Join professionals who draft, visualize, and present in one place.
                 </p>
-                <NavLink to="/plans/all">
+                <NavLink to="/register">
                   <button type="button" className="btn-primary px-10 py-4 text-base inline-flex items-center gap-2">
-                    <HiSparkles className="text-xl" /> Start design journey
+                    <HiSparkles className="text-xl" /> View plans &amp; pricing
                   </button>
                 </NavLink>
               </div>

@@ -12,22 +12,35 @@ const getAuthHeaders = () => {
   };
 };
 
+async function handlePlanResponse(response) {
+  const data = await response.json().catch(() => ({}));
+
+  if (response.status === 401) {
+    authService.logout();
+    window.location.href = '/login';
+    throw new Error('Session expired');
+  }
+
+  if (response.status === 403 && data.code === 'SUBSCRIPTION_REQUIRED') {
+    throw Object.assign(
+      new Error(data.message || 'An active subscription is required.'),
+      { code: 'SUBSCRIPTION_REQUIRED' }
+    );
+  }
+
+  if (!response.ok) {
+    throw new Error(data.message || `Request failed (${response.status})`);
+  }
+
+  return data;
+}
+
 export const planService = {
   getAllPlans: async () => {
     const response = await fetch(API_URL, {
       headers: getAuthHeaders()
     });
-
-    if (!response.ok) {
-      if (response.status === 401 || response.status === 403) {
-        authService.logout();
-        window.location.href = '/login';
-        throw new Error('Session expired');
-      }
-      throw new Error('Failed to fetch plans');
-    }
-
-    return await response.json();
+    return handlePlanResponse(response);
   },
 
   getPlan: async (id) => {
@@ -35,22 +48,20 @@ export const planService = {
       headers: getAuthHeaders()
     });
 
-    if (!response.ok) {
-      if (response.status === 401 || response.status === 403) {
-        authService.logout();
-        window.location.href = '/login';
-        throw new Error('Session expired');
-      }
-      if (response.status === 404) return null;
-      throw new Error('Failed to fetch plan');
+    if (response.status === 404) {
+      await response.json().catch(() => ({}));
+      return null;
     }
 
-    return await response.json();
+    try {
+      return await handlePlanResponse(response);
+    } catch (e) {
+      if (e.code === 'SUBSCRIPTION_REQUIRED') throw e;
+      throw e;
+    }
   },
 
   createPlan: async (planData) => {
-    // Structure payload for backend
-    // The backend expects { id, name, data } where data contains the full plan object
     const payload = {
       id: planData.id,
       name: planData.name,
@@ -63,21 +74,10 @@ export const planService = {
       body: JSON.stringify(payload)
     });
 
-    if (!response.ok) {
-      if (response.status === 401 || response.status === 403) {
-        authService.logout();
-        window.location.href = '/login';
-        throw new Error('Session expired');
-      }
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || 'Failed to create plan');
-    }
-
-    return await response.json();
+    return handlePlanResponse(response);
   },
 
   updatePlan: async (id, planData) => {
-    // Structure payload for backend
     const payload = {
       name: planData.name,
       data: planData
@@ -89,17 +89,7 @@ export const planService = {
       body: JSON.stringify(payload)
     });
 
-    if (!response.ok) {
-      if (response.status === 401 || response.status === 403) {
-        authService.logout();
-        window.location.href = '/login';
-        throw new Error('Session expired');
-      }
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || 'Failed to update plan');
-    }
-
-    return await response.json();
+    return handlePlanResponse(response);
   },
 
   deletePlan: async (id) => {
@@ -108,15 +98,6 @@ export const planService = {
       headers: getAuthHeaders()
     });
 
-    if (!response.ok) {
-      if (response.status === 401 || response.status === 403) {
-        authService.logout();
-        window.location.href = '/login';
-        throw new Error('Session expired');
-      }
-      throw new Error('Failed to delete plan');
-    }
-
-    return await response.json();
+    return handlePlanResponse(response);
   }
 };
