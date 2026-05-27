@@ -1,6 +1,7 @@
 import { BiRefresh } from 'react-icons/bi';
 import { useLocation } from 'react-router-dom';
 import PlanCards from '../components/Billing/PlanCards';
+import PlanUsageSummary from '../components/Billing/PlanUsageSummary';
 import { useBilling } from '../hooks/useBilling';
 
 const formatPrice = (amount, currency = 'INR') => {
@@ -34,11 +35,6 @@ const Billing = () => {
     startCheckout,
   } = useBilling();
 
-  const used = entitlement?.renderUsed ?? 0;
-  const limit = entitlement?.renderLimit ?? 0;
-  const remaining = entitlement?.renderRemaining ?? 0;
-  const usagePercent = limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : 0;
-
   return (
     <div>
       <div className="mt-2 flex items-start justify-between gap-4">
@@ -70,39 +66,19 @@ const Billing = () => {
       )}
 
       <div className="mt-6 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-        <div className="flex flex-wrap items-start justify-between gap-5">
-          <div>
-            <div className="text-sm font-semibold uppercase tracking-wide text-slate-400">Current plan</div>
-            <div className="mt-1 text-2xl font-black text-slate-950">
-              {entitlement?.active ? entitlement.plan?.name : 'No active plan'}
-            </div>
-            <div className="mt-1 text-sm text-slate-500">
-              {entitlement?.active
-                ? `Valid until ${formatDate(entitlement.cycleEndAt)}`
-                : 'Buy a package to unlock AI rendering.'}
-            </div>
+        <div>
+          <div className="text-sm font-semibold uppercase tracking-wide text-slate-400">Current plan</div>
+          <div className="mt-1 text-2xl font-black text-slate-950">
+            {entitlement?.active ? entitlement.plan?.name : 'No active plan'}
           </div>
-
-          <div className="w-full max-w-sm rounded-lg bg-[#F4F1E8] px-5 py-4">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <div className="text-sm font-semibold text-slate-500">AI render usage</div>
-                <div className="mt-1 text-3xl font-black text-[#142725]">
-                  {used}/{limit}
-                </div>
-              </div>
-              <div className="text-right text-sm font-semibold text-slate-600">
-                {remaining} remaining
-              </div>
-            </div>
-            <div className="mt-3 h-2 overflow-hidden rounded-full bg-white">
-              <div
-                className="h-full rounded-full bg-[#B38F4B]"
-                style={{ width: `${usagePercent}%` }}
-              />
-            </div>
+          <div className="mt-1 text-sm text-slate-500">
+            {entitlement?.active
+              ? `Your 30-day package is active until ${formatDate(entitlement.cycleEndAt)}.`
+              : 'Buy a package to unlock 2D, 3D, AI rendering, and plan features below.'}
           </div>
         </div>
+
+        {entitlement?.active && <PlanUsageSummary entitlement={entitlement} />}
       </div>
 
       <div className="mt-6">

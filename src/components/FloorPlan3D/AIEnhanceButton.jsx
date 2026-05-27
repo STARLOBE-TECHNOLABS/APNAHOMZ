@@ -1,9 +1,10 @@
 import React, { useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { BiBrush, BiX, BiDownload, BiRefresh, BiCheck, BiGridAlt } from 'react-icons/bi';
+import { BiBrush, BiX, BiDownload, BiRefresh, BiCheck, BiLock } from 'react-icons/bi';
 import { aiService } from '../../services/aiService';
 import { useBilling } from '../../hooks/useBilling';
 import PlanCards from '../Billing/PlanCards';
+import StyleUpgradeNotice from './StyleUpgradeNotice';
 
 /**
  * AI Interior Style Options
@@ -71,7 +72,7 @@ export const INTERIOR_STYLES = [
 /**
  * AI Style Selector Modal
  */
-export const AIStyleSelector = ({ isOpen, onClose, onSelect, selectedStyle, selectedRoom, plan, originalImage, onModalStateChange, entitlement, onUpgrade }) => {
+export const AIStyleSelector = ({ isOpen, onClose, onSelect, selectedStyle, selectedRoom, plan, originalImage, onModalStateChange, entitlement, onStyleLocked }) => {
   const [localStyle, setLocalStyle] = useState(selectedStyle || 'modern');
   const [selectedArea, setSelectedArea] = useState(null);
   const [showAreaSelector, setShowAreaSelector] = useState(false);
@@ -176,7 +177,7 @@ export const AIStyleSelector = ({ isOpen, onClose, onSelect, selectedStyle, sele
 
   const handleConfirm = () => {
     if (!allowedStyleIds.includes(localStyle)) {
-      onUpgrade?.();
+      onStyleLocked?.(localStyle);
       return;
     }
 
@@ -235,7 +236,7 @@ export const AIStyleSelector = ({ isOpen, onClose, onSelect, selectedStyle, sele
                   return (
                 <button
                   key={style.id}
-                  onClick={() => isLocked ? onUpgrade?.() : setLocalStyle(style.id)}
+                  onClick={() => isLocked ? onStyleLocked?.(style.id) : setLocalStyle(style.id)}
                   className={`p-2 rounded-xl border-2 transition-all text-left group ${isLocked
                     ? 'border-gray-200 bg-gray-50 opacity-75'
                     : localStyle === style.id
@@ -250,8 +251,11 @@ export const AIStyleSelector = ({ isOpen, onClose, onSelect, selectedStyle, sele
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
                     {isLocked && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/45 text-[10px] font-bold uppercase tracking-wide text-white">
-                        Upgrade
+                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/50 text-white">
+                        <BiLock size={18} />
+                        <span className="text-[10px] font-semibold uppercase tracking-wide">
+                          Not on plan
+                        </span>
                       </div>
                     )}
                     <div className={`absolute inset-0 bg-purple-600/10 transition-opacity ${localStyle === style.id ? 'opacity-100' : 'opacity-0'}`} />
@@ -668,6 +672,7 @@ const AIEnhanceButton = ({
   const [capturedMaps, setCapturedMaps] = useState(null);
   const [batchRenders, setBatchRenders] = useState(null); // NEW: Store batch render results
   const [showBillingGate, setShowBillingGate] = useState(false);
+  const [lockedStyleId, setLockedStyleId] = useState(null);
   const billing = useBilling();
 
   // Notify parent of any open modal
@@ -1181,7 +1186,7 @@ const AIEnhanceButton = ({
         originalImage={originalImage}
         onModalStateChange={onModalStateChange}
         entitlement={billing.entitlement}
-        onUpgrade={() => setShowBillingGate(true)}
+        onStyleLocked={(styleId) => setLockedStyleId(styleId)}
       />
 
       <AIResultModal
@@ -1194,6 +1199,14 @@ const AIEnhanceButton = ({
         onRegenerate={handleRegenerate}
         isLoading={isGenerating}
         batchRenders={batchRenders}
+      />
+
+      <StyleUpgradeNotice
+        isOpen={Boolean(lockedStyleId)}
+        onClose={() => setLockedStyleId(null)}
+        styleId={lockedStyleId}
+        entitlement={billing.entitlement}
+        plans={billing.plans}
       />
 
       <BillingGateModal
