@@ -1,9 +1,13 @@
 import { NavLink } from 'react-router-dom'
-import { HiViewList, HiOutlineStar, HiOutlineTrash, HiLogout } from "react-icons/hi";
+import { HiViewList, HiOutlineStar, HiOutlineTrash, HiLogout, HiCreditCard } from "react-icons/hi";
 import { useAuth } from '../../context/AuthContext';
+import { useBilling } from '../../hooks/useBilling';
 
 const Navigation = () => {
   const { user, logout } = useAuth();
+  const { entitlement } = useBilling({ autoLoad: Boolean(user) });
+  const used = entitlement?.renderUsed ?? 0;
+  const limit = entitlement?.renderLimit ?? 0;
   
   return (
     <nav className='flex h-full min-h-0 flex-col text-white'>
@@ -27,6 +31,12 @@ const Navigation = () => {
                 <HiOutlineStar/> Favorite</NavLink>
               <NavLink className="[&.active]:bg-[#B38F4B]/30 [&.active]:text-[#B38F4B] hover:bg-white/10 text-white/90 px-2 py-1 rounded-md flex items-center gap-2 border-l-2 border-transparent [&.active]:border-[#B38F4B]" to={"trash"}>
                 <HiOutlineTrash />Trash</NavLink>
+              <NavLink className="[&.active]:bg-[#B38F4B]/30 [&.active]:text-[#B38F4B] hover:bg-white/10 text-white/90 px-2 py-1 rounded-md flex items-center gap-2 border-l-2 border-transparent [&.active]:border-[#B38F4B]" to={"billing"}>
+                <HiCreditCard />Billing
+                <span className='ml-auto rounded bg-white/10 px-1.5 py-0.5 text-[10px] text-white/70'>
+                  {used}/{limit}
+                </span>
+              </NavLink>
               <hr className='my-3 border-white/10' />
              {/* <NavLink className="[&.active]:bg-slate-100 hover:bg-slate-50 px-2 py-1 rounded-md flex items-center gap-2" to={'documentation'}>
                 <HiOutlineDocumentText /> Documentation

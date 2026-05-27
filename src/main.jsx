@@ -19,6 +19,7 @@ import Plans from './pages/Plans.jsx'
 import All from './components/Plans/All.jsx'
 import Favorite from './components/Plans/Favorite.jsx'
 import Trash from './components/Plans/Trash.jsx'
+import Billing from './pages/Billing.jsx'
 
 // Editor 
 import FloorPlanEditor from './pages/FloorPlanEditor.jsx'
@@ -82,6 +83,10 @@ const router = createBrowserRouter([
       {
         path: "/plans/trash",
         element: <Trash />
+      },
+      {
+        path: "/plans/billing",
+        element: <Billing />
       },
       {
         path: "/plans/documentation",

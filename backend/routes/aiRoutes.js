@@ -1,6 +1,7 @@
 const express = require('express');
 const authenticateToken = require('../middleware/authMiddleware');
 const aiRenderService = require('../services/aiRenderService');
+const { requireAiCredits, finishAiCredits } = require('../middleware/aiEntitlementMiddleware');
 
 const router = express.Router();
 
@@ -12,7 +13,7 @@ const RUNPOD_URL =
  * LEGACY: Original realistic render endpoint
  * Kept for backward compatibility
  */
-router.post('/realistic-render', authenticateToken, async (req, res) => {
+router.post('/realistic-render', authenticateToken, requireAiCredits('realistic-render'), async (req, res) => {
   try {
     const { planSummary, style, initialImage } = req.body || {};
 
@@ -84,9 +85,11 @@ router.post('/realistic-render', authenticateToken, async (req, res) => {
         .json({ message: 'No image returned from RunPod AI' });
     }
 
+    await finishAiCredits(req, 1);
     res.json({ imageBase64 });
   } catch (error) {
     console.error('AI realistic render error:', error);
+    await finishAiCredits(req, 0, error.message);
     res.status(500).json({ message: 'AI render failed', error: error.message });
   }
 });
@@ -95,7 +98,7 @@ router.post('/realistic-render', authenticateToken, async (req, res) => {
  * NEW: Enhanced interior render with RunPod AI
  * Uses structured prompts for generating photorealistic interiors
  */
-router.post('/enhance-interior', authenticateToken, async (req, res) => {
+router.post('/enhance-interior', authenticateToken, requireAiCredits('enhance-interior'), async (req, res) => {
   try {
     const {
       colorImage,
@@ -160,6 +163,7 @@ router.post('/enhance-interior', authenticateToken, async (req, res) => {
       viewType, // pass through so insider FPS uses img2img not depth-pro
     });
 
+    await finishAiCredits(req, 1);
     res.json({
       success: true,
       imageBase64: result.imageBase64,
@@ -171,6 +175,7 @@ router.post('/enhance-interior', authenticateToken, async (req, res) => {
 
   } catch (error) {
     console.error('AI interior enhancement error:', error);
+    await finishAiCredits(req, 0, error.message);
     res.status(500).json({
       message: 'AI interior enhancement failed',
       error: error.message,
@@ -181,7 +186,7 @@ router.post('/enhance-interior', authenticateToken, async (req, res) => {
 /**
  * NEW: Generate multiple interior variations
  */
-router.post('/enhance-interior-variations', authenticateToken, async (req, res) => {
+router.post('/enhance-interior-variations', authenticateToken, requireAiCredits('enhance-interior-variations'), async (req, res) => {
   try {
     const {
       colorImage,
@@ -212,6 +217,7 @@ router.post('/enhance-interior-variations', authenticateToken, async (req, res) 
       roomType,
     }, count);
 
+    await finishAiCredits(req, variations.length);
     res.json({
       success: true,
       variations: variations.map((v, i) => ({
@@ -223,6 +229,7 @@ router.post('/enhance-interior-variations', authenticateToken, async (req, res) 
 
   } catch (error) {
     console.error('AI variations error:', error);
+    await finishAiCredits(req, 0, error.message);
     res.status(500).json({
       message: 'Failed to generate variations',
       error: error.message,
@@ -250,7 +257,7 @@ router.get('/interior-styles', authenticateToken, async (req, res) => {
  * NEW: Text-only generation endpoint (no image required)
  * Uses floor plan structure data to generate interior
  */
-router.post('/generate-from-text', authenticateToken, async (req, res) => {
+router.post('/generate-from-text', authenticateToken, requireAiCredits('generate-from-text'), async (req, res) => {
   try {
     const {
       planData,
@@ -298,6 +305,7 @@ router.post('/generate-from-text', authenticateToken, async (req, res) => {
       guidance,
     });
 
+    await finishAiCredits(req, 1);
     res.json({
       success: true,
       imageBase64: result.imageBase64,
@@ -309,6 +317,7 @@ router.post('/generate-from-text', authenticateToken, async (req, res) => {
 
   } catch (error) {
     console.error('Text-only generation error:', error);
+    await finishAiCredits(req, 0, error.message);
     res.status(500).json({
       message: 'Text-only generation failed',
       error: error.message,
@@ -350,7 +359,7 @@ router.post('/analyze-structure', authenticateToken, async (req, res) => {
  * NEW: Generate interior renders for ALL rooms in floor plan
  * Generates multiple renders - one per room
  */
-router.post('/generate-all-rooms', authenticateToken, async (req, res) => {
+router.post('/generate-all-rooms', authenticateToken, requireAiCredits('generate-all-rooms'), async (req, res) => {
   try {
     const {
       planData,
@@ -391,6 +400,11 @@ router.post('/generate-all-rooms', authenticateToken, async (req, res) => {
       guidance,
     });
 
+    const successfulCount = Array.isArray(result.renders)
+      ? result.renders.filter((render) => render.imageBase64).length
+      : 0;
+    await finishAiCredits(req, successfulCount);
+
     res.json({
       success: true,
       renders: result.renders,
@@ -400,6 +414,7 @@ router.post('/generate-all-rooms', authenticateToken, async (req, res) => {
 
   } catch (error) {
     console.error('Batch generation error:', error);
+    await finishAiCredits(req, 0, error.message);
     res.status(500).json({
       message: 'Batch generation failed',
       error: error.message,

@@ -2,6 +2,8 @@ import React, { useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { BiBrush, BiX, BiDownload, BiRefresh, BiCheck, BiGridAlt } from 'react-icons/bi';
 import { aiService } from '../../services/aiService';
+import { useBilling } from '../../hooks/useBilling';
+import PlanCards from '../Billing/PlanCards';
 
 /**
  * AI Interior Style Options
@@ -69,15 +71,23 @@ export const INTERIOR_STYLES = [
 /**
  * AI Style Selector Modal
  */
-export const AIStyleSelector = ({ isOpen, onClose, onSelect, selectedStyle, selectedRoom, plan, originalImage, onModalStateChange }) => {
+export const AIStyleSelector = ({ isOpen, onClose, onSelect, selectedStyle, selectedRoom, plan, originalImage, onModalStateChange, entitlement, onUpgrade }) => {
   const [localStyle, setLocalStyle] = useState(selectedStyle || 'modern');
   const [selectedArea, setSelectedArea] = useState(null);
   const [showAreaSelector, setShowAreaSelector] = useState(false);
+  const allowedStyleIds = entitlement?.allowedStyleIds || [];
 
   // Notify parent of modal state
   React.useEffect(() => {
     onModalStateChange?.(isOpen);
   }, [isOpen, onModalStateChange]);
+
+  React.useEffect(() => {
+    if (!isOpen || allowedStyleIds.length === 0) return;
+    if (!allowedStyleIds.includes(localStyle)) {
+      setLocalStyle(allowedStyleIds[0]);
+    }
+  }, [allowedStyleIds, isOpen, localStyle]);
 
   // Extract rooms from plan data for area selection
   const detectedRooms = React.useMemo(() => {
@@ -165,6 +175,11 @@ export const AIStyleSelector = ({ isOpen, onClose, onSelect, selectedStyle, sele
   if (!isOpen) return null;
 
   const handleConfirm = () => {
+    if (!allowedStyleIds.includes(localStyle)) {
+      onUpgrade?.();
+      return;
+    }
+
     onSelect({
       style: INTERIOR_STYLES.find(s => s.id === localStyle),
       roomType: { id: 'auto', name: 'Auto Detect' },
@@ -215,10 +230,15 @@ export const AIStyleSelector = ({ isOpen, onClose, onSelect, selectedStyle, sele
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {INTERIOR_STYLES.map((style) => (
+                (() => {
+                  const isLocked = allowedStyleIds.length > 0 && !allowedStyleIds.includes(style.id);
+                  return (
                 <button
                   key={style.id}
-                  onClick={() => setLocalStyle(style.id)}
-                  className={`p-2 rounded-xl border-2 transition-all text-left group ${localStyle === style.id
+                  onClick={() => isLocked ? onUpgrade?.() : setLocalStyle(style.id)}
+                  className={`p-2 rounded-xl border-2 transition-all text-left group ${isLocked
+                    ? 'border-gray-200 bg-gray-50 opacity-75'
+                    : localStyle === style.id
                     ? 'border-purple-600 bg-purple-50 ring-2 ring-purple-100'
                     : 'border-gray-200 hover:border-purple-300 hover:bg-gray-50'
                     }`}
@@ -229,6 +249,11 @@ export const AIStyleSelector = ({ isOpen, onClose, onSelect, selectedStyle, sele
                       alt={style.name}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
+                    {isLocked && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/45 text-[10px] font-bold uppercase tracking-wide text-white">
+                        Upgrade
+                      </div>
+                    )}
                     <div className={`absolute inset-0 bg-purple-600/10 transition-opacity ${localStyle === style.id ? 'opacity-100' : 'opacity-0'}`} />
                   </div>
                   <p className="font-bold text-gray-900 text-sm flex items-center justify-between">
@@ -239,6 +264,8 @@ export const AIStyleSelector = ({ isOpen, onClose, onSelect, selectedStyle, sele
                     {style.description}
                   </p>
                 </button>
+                  );
+                })()
               ))}
             </div>
           </div>
@@ -566,6 +593,60 @@ export const AIResultModal = ({ isOpen, onClose, originalImage, enhancedImage, o
   );
 };
 
+const BillingGateModal = ({
+  isOpen,
+  onClose,
+  plans,
+  entitlement,
+  checkoutLoading,
+  error,
+  onSelectPlan,
+}) => {
+  if (!isOpen) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/70 backdrop-blur-sm">
+      <div className="max-h-[92vh] w-full max-w-5xl overflow-y-auto rounded-lg bg-slate-50 p-6 shadow-2xl">
+        <div className="mb-5 flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-950">Choose a plan for AI renders</h2>
+            <p className="mt-1 text-sm text-slate-500">
+              AI rendering uses 30-day package credits. Your 2D editor and 3D view stay available.
+            </p>
+            {entitlement?.active && (
+              <p className="mt-2 text-sm font-semibold text-[#142725]">
+                Current usage: {entitlement.renderUsed}/{entitlement.renderLimit} used, {entitlement.renderRemaining} remaining
+              </p>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full p-2 text-slate-500 hover:bg-slate-200 hover:text-slate-900"
+          >
+            <BiX size={24} />
+          </button>
+        </div>
+
+        {error && (
+          <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {error}
+          </div>
+        )}
+
+        <PlanCards
+          plans={plans}
+          entitlement={entitlement}
+          checkoutLoading={checkoutLoading}
+          onSelectPlan={onSelectPlan}
+          compact
+        />
+      </div>
+    </div>,
+    document.body
+  );
+};
+
 /**
  * Main AI Enhance Button Component
  */
@@ -586,15 +667,23 @@ const AIEnhanceButton = ({
   const [error, setError] = useState(null);
   const [capturedMaps, setCapturedMaps] = useState(null);
   const [batchRenders, setBatchRenders] = useState(null); // NEW: Store batch render results
+  const [showBillingGate, setShowBillingGate] = useState(false);
+  const billing = useBilling();
 
   // Notify parent of any open modal
   React.useEffect(() => {
-    onModalStateChange?.(showStyleSelector || showResult || isGenerating);
-  }, [showStyleSelector, showResult, isGenerating, onModalStateChange]);
+    onModalStateChange?.(showStyleSelector || showResult || showBillingGate || isGenerating);
+  }, [showStyleSelector, showResult, showBillingGate, isGenerating, onModalStateChange]);
 
   const handleEnhanceClick = async (e) => {
     if (e) e.stopPropagation();
     try {
+      const entitlement = await billing.refresh();
+      if (!entitlement?.active || entitlement.renderRemaining <= 0) {
+        setShowBillingGate(true);
+        return;
+      }
+
       // Capture the current 3D view with all control maps
       const captured = await onCapture();
       if (captured) {
@@ -934,8 +1023,12 @@ const AIEnhanceButton = ({
     } catch (err) {
       console.error('AI generation failed:', err);
       setError(err.message || 'Failed to generate interior. Please try again.');
+      if (/credit|subscription|plan|style/i.test(err.message || '')) {
+        setShowBillingGate(true);
+      }
     } finally {
       setIsGenerating(false);
+      billing.refresh().catch(() => {});
     }
   };
 
@@ -1087,6 +1180,8 @@ const AIEnhanceButton = ({
         plan={plan}
         originalImage={originalImage}
         onModalStateChange={onModalStateChange}
+        entitlement={billing.entitlement}
+        onUpgrade={() => setShowBillingGate(true)}
       />
 
       <AIResultModal
@@ -1099,6 +1194,19 @@ const AIEnhanceButton = ({
         onRegenerate={handleRegenerate}
         isLoading={isGenerating}
         batchRenders={batchRenders}
+      />
+
+      <BillingGateModal
+        isOpen={showBillingGate}
+        onClose={() => setShowBillingGate(false)}
+        plans={billing.plans}
+        entitlement={billing.entitlement}
+        checkoutLoading={billing.checkoutLoading}
+        error={billing.error}
+        onSelectPlan={async (planCode) => {
+          await billing.startCheckout(planCode);
+          setShowBillingGate(false);
+        }}
       />
     </>
   );
