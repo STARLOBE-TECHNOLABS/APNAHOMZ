@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const db = require('../database/db');
+const billingService = require('../services/billingService');
 
 const SECRET_KEY = process.env.JWT_SECRET || 'your-secret-key-change-this';
 
@@ -21,7 +22,7 @@ const transporter = nodemailer.createTransport({
 
 // Register
 router.post('/register', async (req, res) => {
-  const { username, email, password, phone } = req.body;
+  const { username, email, password, phone, claimToken } = req.body;
 
   if (!username || !email || !password) {
     return res.status(400).json({ message: 'Please provide all required fields' });
@@ -34,9 +35,15 @@ router.post('/register', async (req, res) => {
     const [result] = await db.query(sql, [username, email, hashedPassword, phone]);
 
     const user = { id: result.insertId, username, email };
+    let entitlement = null;
+
+    if (claimToken) {
+      entitlement = await billingService.claimGuestPurchase(user.id, claimToken);
+    }
+
     const token = jwt.sign({ id: user.id, username: user.username }, SECRET_KEY, { expiresIn: '24h' });
 
-    res.status(201).json({ user, token });
+    res.status(201).json({ user, token, entitlement });
   } catch (error) {
     if (error.code === 'ER_DUP_ENTRY') {
       return res.status(400).json({ message: 'Username or email already exists' });
@@ -48,7 +55,7 @@ router.post('/register', async (req, res) => {
 
 // Login
 router.post('/login', async (req, res) => {
-  const { username, password } = req.body;
+  const { username, password, claimToken } = req.body;
 
   if (!username || !password) {
     return res.status(400).json({ message: 'Please provide username and password' });
@@ -68,10 +75,15 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
+    let entitlement = null;
+    if (claimToken) {
+      entitlement = await billingService.claimGuestPurchase(user.id, claimToken);
+    }
+
     const token = jwt.sign({ id: user.id, username: user.username }, SECRET_KEY, { expiresIn: '24h' });
     const { password: _, ...userWithoutPassword } = user;
 
-    res.json({ user: userWithoutPassword, token });
+    res.json({ user: userWithoutPassword, token, entitlement });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ message: 'Server error' });

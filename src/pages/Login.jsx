@@ -1,8 +1,14 @@
 
-import { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useNotification } from '@/context/NotificationContext';
+import {
+  billingPathWithCheckout,
+  getPendingCheckoutPlan,
+  parseMarketingCheckout,
+  persistMarketingCheckout,
+} from '@/utils/marketingCheckout';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -13,8 +19,28 @@ const Login = () => {
   const notify = useNotification();
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
 
-  const from = location.state?.from?.pathname || '/plans/billing';
+  useEffect(() => {
+    const { plan, source } = parseMarketingCheckout(searchParams.toString());
+    if (plan || source) {
+      persistMarketingCheckout({ plan, source });
+    }
+  }, [searchParams]);
+
+  const resolveAfterLogin = () => {
+    if (searchParams.get('claim')) {
+      return '/plans/all';
+    }
+    const { plan, source, checkout } = parseMarketingCheckout(searchParams.toString());
+    const pendingPlan = checkout || plan || getPendingCheckoutPlan();
+    if (pendingPlan) {
+      return billingPathWithCheckout(pendingPlan, source || undefined);
+    }
+    return location.state?.from?.pathname || '/plans/billing';
+  };
+
+  const claimToken = searchParams.get('claim');
 
   const validateInput = () => {
     if (!username.trim()) {
@@ -34,10 +60,14 @@ const Login = () => {
 
     setLoading(true);
     try {
-      const result = await login(username, password);
+      const result = await login(username, password, claimToken || undefined);
       if (result.success) {
-        notify({ content: "Successfully logged in", type: "success" });
-        navigate(from, { replace: true });
+        if (claimToken && result.entitlement?.active) {
+          notify({ content: 'Purchase linked! Your plan is active.', type: 'success' });
+        } else {
+          notify({ content: "Successfully logged in", type: "success" });
+        }
+        navigate(resolveAfterLogin(), { replace: true });
       } else {
         notify({ content: result.error || "Login failed", type: "error" });
       }

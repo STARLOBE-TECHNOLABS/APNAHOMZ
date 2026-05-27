@@ -1,8 +1,18 @@
+import { useEffect, useRef } from 'react';
 import { BiRefresh } from 'react-icons/bi';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import PlanCards from '../components/Billing/PlanCards';
 import PlanUsageSummary from '../components/Billing/PlanUsageSummary';
 import { useBilling } from '../hooks/useBilling';
+import { useNotification } from '@/context/NotificationContext';
+import {
+  clearMarketingCheckout,
+  getCheckoutSource,
+  isValidPlanCode,
+  parseMarketingCheckout,
+  persistMarketingCheckout,
+  resolvePostPaymentPath,
+} from '@/utils/marketingCheckout';
 
 const formatPrice = (amount, currency = 'INR') => {
   if (currency === 'INR') {
@@ -22,7 +32,11 @@ const formatDate = (date) => {
 
 const Billing = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const notify = useNotification();
   const subscriptionHint = location.state?.subscriptionRequired;
+  const autoCheckoutStarted = useRef(false);
 
   const {
     plans,
@@ -34,6 +48,45 @@ const Billing = () => {
     refresh,
     startCheckout,
   } = useBilling();
+
+  const checkoutPlan = searchParams.get('checkout');
+  const checkoutSource = searchParams.get('source') || getCheckoutSource();
+
+  useEffect(() => {
+    const { source } = parseMarketingCheckout(searchParams.toString());
+    if (source) persistMarketingCheckout({ source });
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (loading || autoCheckoutStarted.current) return;
+    if (!checkoutPlan || !isValidPlanCode(checkoutPlan)) return;
+    if (!plans.some((p) => p.code === checkoutPlan)) return;
+
+    autoCheckoutStarted.current = true;
+
+    startCheckout(checkoutPlan)
+      .then(() => {
+        setSearchParams({}, { replace: true });
+        clearMarketingCheckout();
+        notify({
+          content: 'Payment successful! Your plan is active — start designing.',
+          type: 'success',
+        });
+        navigate(resolvePostPaymentPath(checkoutSource), { replace: true });
+      })
+      .catch(() => {
+        autoCheckoutStarted.current = false;
+      });
+  }, [
+    checkoutPlan,
+    checkoutSource,
+    loading,
+    navigate,
+    notify,
+    plans,
+    setSearchParams,
+    startCheckout,
+  ]);
 
   return (
     <div>

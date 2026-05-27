@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ApnaHomz Plans — 2D, 3D &amp; AI Interior Design</title>
+  <meta name="description" content="Choose your ApnaHomz package. Pay with Razorpay on this page, then create your account on design.apnahomz.com." />
+  <!--
+    WORDPRESS: upload this file to your site (or embed via iframe from design.apnahomz.com).
+    Flow: Click plan → Razorpay opens here → after payment → redirect to design.apnahomz.com/register
+  -->
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <style>
+    :root {
+      --ink: #142725;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --essential: #3f653d;
+      --signature: #d58b00;
+      --prestige: #082f67;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      color: var(--ink);
+      background: #f8fafc;
+      line-height: 1.5;
+    }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 2rem 1.25rem 3rem; }
+    .hero { text-align: center; margin-bottom: 2rem; }
+    .hero .eyebrow {
+      color: var(--signature);
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+    }
+    .hero h1 { font-size: clamp(1.75rem, 4vw, 2.5rem); margin: 0.5rem 0; font-weight: 900; }
+    .hero p { color: var(--muted); max-width: 680px; margin: 0 auto; }
+    .notice {
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      color: #065f46;
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+    }
+    .toast {
+      display: none;
+      margin-bottom: 1rem;
+      padding: 0.85rem 1rem;
+      border-radius: 10px;
+      font-size: 0.9rem;
+    }
+    .toast.error { display: block; background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; }
+    .toast.info { display: block; background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; }
+    .loading, .error-box { text-align: center; padding: 3rem; color: var(--muted); }
+    .error-box { color: #b91c1c; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.25rem;
+    }
+    .card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(20, 39, 37, 0.06);
+      display: flex;
+      flex-direction: column;
+    }
+    .card.popular { background: #fff9ef; border-color: #fde68a; }
+    .card-head { padding: 1.5rem 1.25rem 1rem; text-align: center; min-height: 200px; }
+    .badge {
+      display: inline-block;
+      background: var(--signature);
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      margin-bottom: 0.75rem;
+    }
+    .icon {
+      width: 64px; height: 64px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 0.75rem; font-size: 1.75rem; font-weight: 900;
+    }
+    .card h2 { margin: 0; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    .tagline { color: var(--muted); font-size: 0.9rem; min-height: 2.5rem; margin-top: 0.35rem; }
+    .price-old { color: #94a3b8; text-decoration: line-through; font-weight: 700; }
+    .price { font-size: 2.25rem; font-weight: 900; margin: 0.25rem 0; }
+    .features { list-style: none; margin: 0; padding: 0 1.25rem; flex: 1; }
+    .features li {
+      padding: 0.65rem 0;
+      border-top: 1px solid var(--border);
+      font-size: 0.875rem;
+      display: flex;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+    .features li span:first-child { color: var(--muted); font-weight: 600; }
+    .features li span:last-child { text-align: right; font-weight: 600; }
+    .foot { padding: 1.25rem; border-top: 1px solid var(--border); }
+    .btn {
+      display: block; width: 100%; border: 2px solid; border-radius: 8px;
+      padding: 0.85rem 1rem; font-size: 0.85rem; font-weight: 800;
+      text-transform: uppercase; letter-spacing: 0.06em; cursor: pointer;
+      text-align: center; transition: opacity 0.2s;
+    }
+    .btn:disabled { opacity: 0.6; cursor: wait; }
+    .btn-essential { border-color: var(--essential); color: var(--essential); background: #fff; }
+    .btn-signature { border-color: var(--signature); background: var(--signature); color: #fff; }
+    .btn-prestige { border-color: var(--prestige); background: var(--prestige); color: #fff; }
+    .signin { text-align: center; margin-top: 2rem; font-size: 0.9rem; color: var(--muted); }
+    .signin a { color: var(--ink); font-weight: 700; }
+    .footer-note { text-align: center; margin-top: 2rem; font-size: 0.8rem; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <div class="eyebrow">ApnaHomz Design Studio</div>
+      <h1>Simple Plans. Stunning Spaces.</h1>
+      <p>Pay securely with Razorpay on this page. After payment you will be redirected to create your account on <strong>design.apnahomz.com</strong> and your plan will activate automatically.</p>
+    </div>
+
+    <div class="notice">
+      <strong>Step 1:</strong> Choose a plan and pay with Razorpay &nbsp;→&nbsp;
+      <strong>Step 2:</strong> Register on design.apnahomz.com &nbsp;→&nbsp;
+      <strong>Step 3:</strong> Start 2D, 3D, and AI design with your plan features.
+    </div>
+
+    <div id="toast" class="toast"></div>
+    <div id="status" class="loading">Loading plans…</div>
+    <div id="plans" class="grid" hidden></div>
+
+    <p class="signin" id="signin-block" hidden>
+      Already paid and have an account?
+      <a id="signin-link" href="https://design.apnahomz.com/login">Sign in on design.apnahomz.com</a>
+    </p>
+
+    <p class="footer-note">
+      Payments by Razorpay. Support: <a href="mailto:info@apnahomz.com">info@apnahomz.com</a>
+    </p>
+  </div>
+
+  <script>
+    (function () {
+      var CONFIG = {
+        API_BASE: 'https://api.apnahomz.com/api/billing',
+        REGISTER_URL: 'https://design.apnahomz.com/register',
+        SOURCE: 'wordpress',
+      };
+
+      var COLORS = {
+        essential: { accent: '#3F653D', soft: '#EDF4E9', btn: 'btn-essential' },
+        signature: { accent: '#D58B00', soft: '#FFF2D8', btn: 'btn-signature' },
+        prestige: { accent: '#082F67', soft: '#EAF1FB', btn: 'btn-prestige' },
+      };
+
+      var checkoutBusy = false;
+      var toastEl = document.getElementById('toast');
+      var statusEl = document.getElementById('status');
+      var plansEl = document.getElementById('plans');
+
+      function formatPrice(n) {
+        return '\u20b9' + Number(n || 0).toLocaleString('en-IN');
+      }
+
+      function boolLabel(v) {
+        return v ? 'Included' : 'Not included';
+      }
+
+      function showToast(message, type) {
+        toastEl.textContent = message;
+        toastEl.className = 'toast ' + (type || 'info');
+      }
+
+      function registerRedirect(claimToken, planCode) {
+        var url = new URL(CONFIG.REGISTER_URL);
+        url.searchParams.set('claim', claimToken);
+        url.searchParams.set('plan', planCode);
+        url.searchParams.set('source', CONFIG.SOURCE);
+        window.location.href = url.toString();
+      }
+
+      function startCheckout(plan) {
+        if (checkoutBusy) return;
+        checkoutBusy = true;
+        showToast('Opening Razorpay for ' + plan.name + '…', 'info');
+
+        fetch(CONFIG.API_BASE + '/guest/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({ planCode: plan.code, source: CONFIG.SOURCE }),
+        })
+          .then(function (res) {
+            return res.json().then(function (data) {
+              if (!res.ok) throw new Error(data.message || 'Could not start checkout');
+              return data;
+            });
+          })
+          .then(function (order) {
+            if (!window.Razorpay) throw new Error('Razorpay failed to load');
+
+            var rzp = new Razorpay({
+              key: order.keyId,
+              amount: order.amount,
+              currency: order.currency,
+              name: 'ApnaHomz',
+              description: plan.name + ' — 30-day design package',
+              order_id: order.orderId,
+              theme: { color: '#142725' },
+              handler: function (response) {
+                showToast('Verifying payment…', 'info');
+                fetch(CONFIG.API_BASE + '/guest/verify', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+                  body: JSON.stringify(response),
+                })
+                  .then(function (res) {
+                    return res.json().then(function (data) {
+                      if (!res.ok) throw new Error(data.message || 'Payment verification failed');
+                      return data;
+                    });
+                  })
+                  .then(function (data) {
+                    showToast('Payment successful! Redirecting to create your account…', 'info');
+                    registerRedirect(data.claimToken, data.planCode || plan.code);
+                  })
+                  .catch(function (err) {
+                    checkoutBusy = false;
+                    showToast(err.message || 'Verification failed', 'error');
+                  });
+              },
+              modal: {
+                ondismiss: function () {
+                  checkoutBusy = false;
+                  showToast('Payment cancelled.', 'error');
+                },
+              },
+            });
+
+            rzp.on('payment.failed', function (resp) {
+              checkoutBusy = false;
+              showToast(
+                (resp.error && resp.error.description) || 'Payment failed. Please try again.',
+                'error'
+              );
+            });
+
+            rzp.open();
+          })
+          .catch(function (err) {
+            checkoutBusy = false;
+            showToast(err.message || 'Checkout failed', 'error');
+          });
+      }
+
+      function renderPlan(plan) {
+        var colors = COLORS[plan.code] || COLORS.essential;
+        var popular = plan.code === 'signature';
+        var card = document.createElement('article');
+        card.className = 'card' + (popular ? ' popular' : '');
+
+        card.innerHTML =
+          '<div class="card-head">' +
+            (plan.badge ? '<span class="badge">' + plan.badge + '</span>' : '') +
+            '<div class="icon" style="background:' + colors.soft + ';color:' + colors.accent + '">' +
+              plan.name.charAt(0) +
+            '</div>' +
+            '<h2 style="color:' + colors.accent + '">' + plan.name + '</h2>' +
+            '<p class="tagline">' + (plan.tagline || '') + '</p>' +
+            '<div class="price-old">' + formatPrice(plan.originalPrice) + '</div>' +
+            '<div class="price" style="color:' + colors.accent + '">' + formatPrice(plan.price) + '</div>' +
+          '</div>' +
+          '<ul class="features">' +
+            '<li><span>Best for</span><span>' + plan.bestFor + '</span></li>' +
+            '<li><span>AI renders</span><span>' + plan.renderLimitLabel + '</span></li>' +
+            '<li><span>3D view</span><span>' + plan.threeDViewsLabel + '</span></li>' +
+            '<li><span>Interior styles</span><span>' + plan.styleLimitLabel + '</span></li>' +
+            '<li><span>Furniture sourcing</span><span>' + boolLabel(plan.furnitureSourcing) + '</span></li>' +
+            '<li><span>Human design help</span><span>' + boolLabel(plan.humanDesignHelp) + '</span></li>' +
+            '<li><span>Ideal for</span><span>' + plan.idealPropertyType + '</span></li>' +
+            '<li><span>Validity</span><span>' + plan.packageValidityLabel + '</span></li>' +
+          '</ul>' +
+          '<div class="foot">' +
+            '<button type="button" class="btn ' + colors.btn + '" data-plan="' + plan.code + '">Buy ' + plan.name + '</button>' +
+          '</div>';
+
+        card.querySelector('button').addEventListener('click', function () {
+          startCheckout(plan);
+        });
+
+        return card;
+      }
+
+      fetch(CONFIG.API_BASE + '/plans')
+        .then(function (res) {
+          if (!res.ok) throw new Error('Could not load plans (' + res.status + ')');
+          return res.json();
+        })
+        .then(function (data) {
+          var plans = data.plans || [];
+          if (!plans.length) throw new Error('No plans available');
+
+          statusEl.hidden = true;
+          plansEl.hidden = false;
+          document.getElementById('signin-block').hidden = false;
+
+          plans.forEach(function (plan) {
+            plansEl.appendChild(renderPlan(plan));
+          });
+        })
+        .catch(function (err) {
+          statusEl.className = 'error-box';
+          statusEl.textContent = err.message || 'Failed to load plans.';
+        });
+    })();
+  </script>
+</body>
+</html>

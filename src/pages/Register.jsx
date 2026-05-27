@@ -1,9 +1,15 @@
 
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useNotification } from '@/context/NotificationContext';
 import { BiBuildingHouse, BiLayer, BiCube, BiCloud } from 'react-icons/bi';
+import {
+  billingPathWithCheckout,
+  getPendingCheckoutPlan,
+  parseMarketingCheckout,
+  persistMarketingCheckout,
+} from '@/utils/marketingCheckout';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -17,6 +23,17 @@ const Register = () => {
   const { register } = useAuth();
   const notify = useNotification();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  const claimToken = searchParams.get('claim');
+  const purchasedPlan = searchParams.get('plan');
+
+  useEffect(() => {
+    const { plan, source } = parseMarketingCheckout(searchParams.toString());
+    if (plan || source) {
+      persistMarketingCheckout({ plan, source });
+    }
+  }, [searchParams]);
 
   const handleChange = (e) => {
     setFormData({
@@ -61,11 +78,27 @@ const Register = () => {
 
     setLoading(true);
 
-    const result = await register(formData);
+    const result = await register({
+      ...formData,
+      claimToken: claimToken || undefined,
+    });
     
     if (result.success) {
-      notify({ content: "Account created successfully!", type: "success" });
-      navigate('/plans/billing');
+      if (claimToken && result.entitlement?.active) {
+        notify({
+          content: `Your ${result.entitlement.plan?.name || purchasedPlan || ''} plan is active. Start designing!`,
+          type: 'success',
+        });
+        navigate('/plans/all', { replace: true });
+      } else if (claimToken) {
+        notify({ content: 'Account created! Your plan is being activated.', type: 'success' });
+        navigate('/plans/billing', { replace: true });
+      } else {
+        notify({ content: 'Account created successfully!', type: 'success' });
+        const { plan, source } = parseMarketingCheckout(searchParams.toString());
+        const pendingPlan = plan || getPendingCheckoutPlan();
+        navigate(billingPathWithCheckout(pendingPlan, source || undefined));
+      }
     } else {
       notify({ content: result.error || "Registration failed", type: "error" });
     }
@@ -170,9 +203,20 @@ const Register = () => {
               Create your account
             </h2>
             <p className="mt-2 text-sm text-gray-600">
-              Start designing your floor plans today
+              {claimToken
+                ? 'Payment received. Create your account to activate your plan and start designing.'
+                : 'Start designing your floor plans today'}
             </p>
           </div>
+
+          {claimToken && (
+            <div className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+              <strong>Payment successful.</strong>{' '}
+              {purchasedPlan
+                ? `Complete registration to activate your ${purchasedPlan.charAt(0).toUpperCase()}${purchasedPlan.slice(1)} plan.`
+                : 'Complete registration to activate your purchased plan.'}
+            </div>
+          )}
 
           <div className="mt-8">
             <div className="bg-white py-8 px-4 shadow-xl rounded-2xl sm:px-10 border border-gray-100">

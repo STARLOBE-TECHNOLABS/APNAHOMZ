@@ -17,11 +17,11 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  const login = async (username, password) => {
+  const login = async (username, password, claimToken) => {
     try {
-      const { user } = await authService.login(username, password);
-      setUser(user);
-      return { success: true };
+      const data = await authService.login(username, password, claimToken);
+      setUser(data.user);
+      return { success: true, entitlement: data.entitlement };
     } catch (error) {
       return { success: false, error: error.message };
     }
@@ -29,9 +29,9 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      const { user } = await authService.register(userData);
+      const { user, entitlement } = await authService.register(userData);
       setUser(user);
-      return { success: true };
+      return { success: true, entitlement };
     } catch (error) {
       return { success: false, error: error.message };
     }

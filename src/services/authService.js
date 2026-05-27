@@ -24,7 +24,7 @@ async function fetchWithTimeout(url, options = {}) {
 }
 
 export const authService = {
-  login: async (username, password) => {
+  login: async (username, password, claimToken) => {
     try {
       const response = await fetchWithTimeout(`${API_URL}/login`, {
         method: 'POST',
@@ -33,7 +33,7 @@ export const authService = {
           'Content-Type': 'application/json',
           Accept: 'application/json',
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username, password, claimToken: claimToken || undefined }),
       });
 
       const data = await response.json();
@@ -53,12 +53,19 @@ export const authService = {
 
   register: async (userData) => {
     try {
-      const response = await fetch(`${API_URL}/register`, {
+      const response = await fetchWithTimeout(`${API_URL}/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Accept: 'application/json',
         },
-        body: JSON.stringify(userData),
+        body: JSON.stringify({
+          username: userData.username,
+          email: userData.email,
+          password: userData.password,
+          phone: userData.phone,
+          claimToken: userData.claimToken || undefined,
+        }),
       });
 
       const data = await response.json();

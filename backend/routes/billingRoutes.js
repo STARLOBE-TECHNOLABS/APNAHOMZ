@@ -53,6 +53,36 @@ router.post('/orders', authenticateToken, async (req, res) => {
   }
 });
 
+router.post('/guest/orders', async (req, res) => {
+  try {
+    const order = await billingService.createGuestOrder(req.body?.planCode, req.body?.source);
+    res.status(201).json(order);
+  } catch (error) {
+    sendError(res, error);
+  }
+});
+
+router.post('/guest/verify', async (req, res) => {
+  try {
+    const result = await billingService.verifyGuestPayment(req.body);
+    res.json(result);
+  } catch (error) {
+    sendError(res, error);
+  }
+});
+
+router.post('/claim', authenticateToken, async (req, res) => {
+  try {
+    const entitlement = await billingService.claimGuestPurchase(
+      req.user.id,
+      req.body?.claimToken
+    );
+    res.json({ entitlement });
+  } catch (error) {
+    sendError(res, error);
+  }
+});
+
 router.post('/verify', authenticateToken, async (req, res) => {
   try {
     const entitlement = await billingService.verifyPayment(req.user.id, req.body);

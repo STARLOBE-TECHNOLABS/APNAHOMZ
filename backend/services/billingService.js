@@ -62,11 +62,13 @@ async function ensureBillingTables() {
   await db.query(`
     CREATE TABLE IF NOT EXISTS subscription_purchases (
       id INT AUTO_INCREMENT PRIMARY KEY,
-      user_id INT NOT NULL,
+      user_id INT NULL,
       plan_code VARCHAR(32) NOT NULL,
       razorpay_order_id VARCHAR(128) NOT NULL UNIQUE,
       razorpay_payment_id VARCHAR(128) UNIQUE,
       razorpay_signature VARCHAR(255),
+      claim_token VARCHAR(64) UNIQUE,
+      source VARCHAR(32),
       amount_paise INT NOT NULL,
       currency VARCHAR(8) NOT NULL DEFAULT 'INR',
       status VARCHAR(32) NOT NULL DEFAULT 'created',
@@ -76,9 +78,12 @@ async function ensureBillingTables() {
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       INDEX idx_subscription_purchases_user_id (user_id),
       INDEX idx_subscription_purchases_status (status),
+      INDEX idx_subscription_purchases_claim_token (claim_token),
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     )
   `);
+
+  await migrateBillingSchemaColumns();
 
   await db.query(`
     CREATE TABLE IF NOT EXISTS user_entitlements (
@@ -144,6 +149,107 @@ async function ensureBillingTables() {
   `);
 
   schemaReady = true;
+}
+
+async function migrateBillingSchemaColumns() {
+  const alters = [
+    'ALTER TABLE subscription_purchases MODIFY user_id INT NULL',
+    'ALTER TABLE subscription_purchases ADD COLUMN claim_token VARCHAR(64) NULL UNIQUE',
+    'ALTER TABLE subscription_purchases ADD COLUMN source VARCHAR(32) NULL',
+    'ALTER TABLE subscription_purchases ADD INDEX idx_subscription_purchases_claim_token (claim_token)',
+  ];
+
+  for (const sql of alters) {
+    try {
+      await db.query(sql);
+    } catch (error) {
+      if (!['ER_DUP_FIELDNAME', 'ER_DUP_KEYNAME', 'ER_CANT_DROP_FIELD_OR_KEY'].includes(error.code)) {
+        // Column/index already exists or incompatible — safe to ignore for idempotent migrations
+        if (!/Duplicate column|Duplicate key name/i.test(error.message || '')) {
+          console.warn('Billing schema migration skipped:', error.message);
+        }
+      }
+    }
+  }
+}
+
+function parseRazorpayPayload(payload) {
+  return {
+    razorpayOrderId: payload?.razorpay_order_id,
+    razorpayPaymentId: payload?.razorpay_payment_id,
+    razorpaySignature: payload?.razorpay_signature,
+  };
+}
+
+function verifyRazorpaySignature({ razorpayOrderId, razorpayPaymentId, razorpaySignature }) {
+  if (!razorpayOrderId || !razorpayPaymentId || !razorpaySignature) {
+    const error = new Error('Missing Razorpay verification fields');
+    error.status = 400;
+    throw error;
+  }
+
+  if (!process.env.RAZORPAY_KEY_SECRET) {
+    const error = new Error('Razorpay is not configured');
+    error.status = 503;
+    throw error;
+  }
+
+  const expected = hmacSha256(
+    `${razorpayOrderId}|${razorpayPaymentId}`,
+    process.env.RAZORPAY_KEY_SECRET
+  );
+
+  if (!safeEqual(expected, razorpaySignature)) {
+    const error = new Error('Payment signature verification failed');
+    error.status = 400;
+    throw error;
+  }
+}
+
+async function grantEntitlementForPurchase(connection, userId, purchase, razorpayPaymentId) {
+  const plan = getPlan(purchase.plan_code);
+  if (!plan || Number(purchase.amount_paise) !== plan.price * 100) {
+    const error = new Error('Payment order does not match a valid plan');
+    error.status = 409;
+    throw error;
+  }
+
+  await connection.query(
+    `
+      INSERT INTO user_entitlements
+        (user_id, plan_code, status, render_limit, render_used, render_reserved,
+         cycle_start_at, cycle_end_at, activated_payment_id)
+      VALUES (?, ?, 'active', ?, 0, 0, NOW(), ${addDaysSql(PLAN_DURATION_DAYS)}, ?)
+      ON DUPLICATE KEY UPDATE
+        plan_code = VALUES(plan_code),
+        status = 'active',
+        render_limit = VALUES(render_limit),
+        render_used = 0,
+        render_reserved = 0,
+        cycle_start_at = NOW(),
+        cycle_end_at = ${addDaysSql(PLAN_DURATION_DAYS)},
+        activated_payment_id = VALUES(activated_payment_id)
+    `,
+    [userId, plan.code, plan.renderLimit, razorpayPaymentId]
+  );
+
+  await connection.query(
+    `
+      INSERT IGNORE INTO credit_ledger
+        (user_id, payment_id, plan_code, action, credits_delta, balance_after, idempotency_key)
+      VALUES (?, ?, ?, 'grant', ?, ?, ?)
+    `,
+    [
+      userId,
+      razorpayPaymentId,
+      plan.code,
+      plan.renderLimit,
+      plan.renderLimit,
+      `grant:${razorpayPaymentId}`,
+    ]
+  );
+
+  return plan;
 }
 
 function formatEntitlement(row) {
@@ -262,7 +368,7 @@ async function activatePurchase({
       throw error;
     }
 
-    if (Number(purchase.user_id) !== Number(userId)) {
+    if (purchase.user_id != null && Number(purchase.user_id) !== Number(userId)) {
       const error = new Error('Payment order does not belong to this user');
       error.status = 403;
       throw error;
@@ -276,8 +382,10 @@ async function activatePurchase({
     }
 
     if (purchase.status === 'paid') {
-      await connection.commit();
-      return getEntitlement(userId);
+      if (purchase.user_id != null) {
+        await connection.commit();
+        return getEntitlement(userId);
+      }
     }
 
     if (purchase.razorpay_payment_id && purchase.razorpay_payment_id !== razorpayPaymentId) {
@@ -290,12 +398,14 @@ async function activatePurchase({
       `
         UPDATE subscription_purchases
         SET status = 'paid',
+            user_id = COALESCE(user_id, ?),
             razorpay_payment_id = ?,
             razorpay_signature = COALESCE(?, razorpay_signature),
             raw_payload = COALESCE(?, raw_payload)
         WHERE razorpay_order_id = ?
       `,
       [
+        userId,
         razorpayPaymentId,
         razorpaySignature,
         rawPayload ? JSON.stringify(rawPayload) : null,
@@ -303,40 +413,7 @@ async function activatePurchase({
       ]
     );
 
-    await connection.query(
-      `
-        INSERT INTO user_entitlements
-          (user_id, plan_code, status, render_limit, render_used, render_reserved,
-           cycle_start_at, cycle_end_at, activated_payment_id)
-        VALUES (?, ?, 'active', ?, 0, 0, NOW(), ${addDaysSql(PLAN_DURATION_DAYS)}, ?)
-        ON DUPLICATE KEY UPDATE
-          plan_code = VALUES(plan_code),
-          status = 'active',
-          render_limit = VALUES(render_limit),
-          render_used = 0,
-          render_reserved = 0,
-          cycle_start_at = NOW(),
-          cycle_end_at = ${addDaysSql(PLAN_DURATION_DAYS)},
-          activated_payment_id = VALUES(activated_payment_id)
-      `,
-      [userId, plan.code, plan.renderLimit, razorpayPaymentId]
-    );
-
-    await connection.query(
-      `
-        INSERT IGNORE INTO credit_ledger
-          (user_id, payment_id, plan_code, action, credits_delta, balance_after, idempotency_key)
-        VALUES (?, ?, ?, 'grant', ?, ?, ?)
-      `,
-      [
-        userId,
-        razorpayPaymentId,
-        plan.code,
-        plan.renderLimit,
-        plan.renderLimit,
-        `grant:${razorpayPaymentId}`,
-      ]
-    );
+    await grantEntitlementForPurchase(connection, userId, purchase, razorpayPaymentId);
 
     await connection.commit();
     return getEntitlement(userId);
@@ -349,42 +426,225 @@ async function activatePurchase({
 }
 
 async function verifyPayment(userId, payload) {
-  const {
-    razorpay_order_id: razorpayOrderId,
-    razorpay_payment_id: razorpayPaymentId,
-    razorpay_signature: razorpaySignature,
-  } = payload || {};
-
-  if (!razorpayOrderId || !razorpayPaymentId || !razorpaySignature) {
-    const error = new Error('Missing Razorpay verification fields');
-    error.status = 400;
-    throw error;
-  }
-
-  if (!process.env.RAZORPAY_KEY_SECRET) {
-    const error = new Error('Razorpay is not configured');
-    error.status = 503;
-    throw error;
-  }
-
-  const expected = hmacSha256(
-    `${razorpayOrderId}|${razorpayPaymentId}`,
-    process.env.RAZORPAY_KEY_SECRET
-  );
-
-  if (!safeEqual(expected, razorpaySignature)) {
-    const error = new Error('Payment signature verification failed');
-    error.status = 400;
-    throw error;
-  }
+  const fields = parseRazorpayPayload(payload);
+  verifyRazorpaySignature(fields);
 
   return activatePurchase({
     userId,
-    razorpayOrderId,
-    razorpayPaymentId,
-    razorpaySignature,
+    razorpayOrderId: fields.razorpayOrderId,
+    razorpayPaymentId: fields.razorpayPaymentId,
+    razorpaySignature: fields.razorpaySignature,
     rawPayload: payload,
   });
+}
+
+async function createGuestOrder(planCode, source = 'wordpress') {
+  await ensureBillingTables();
+  const plan = getPlan(planCode);
+  if (!plan) {
+    const error = new Error('Invalid plan');
+    error.status = 400;
+    throw error;
+  }
+
+  const razorpay = requireRazorpay();
+  const amountPaise = plan.price * 100;
+  const claimToken = crypto.randomBytes(24).toString('hex');
+  const receipt = `fl_guest_${plan.code}_${Date.now()}`.slice(0, 40);
+
+  const order = await razorpay.orders.create({
+    amount: amountPaise,
+    currency: plan.currency,
+    receipt,
+    notes: {
+      plan_code: plan.code,
+      source: String(source || 'wordpress'),
+      guest: 'true',
+    },
+  });
+
+  await db.query(
+    `
+      INSERT INTO subscription_purchases
+        (user_id, plan_code, razorpay_order_id, amount_paise, currency, status, claim_token, source, raw_payload)
+      VALUES (NULL, ?, ?, ?, ?, 'created', ?, ?, ?)
+    `,
+    [
+      plan.code,
+      order.id,
+      amountPaise,
+      plan.currency,
+      claimToken,
+      source || 'wordpress',
+      JSON.stringify(order),
+    ]
+  );
+
+  return {
+    keyId: process.env.RAZORPAY_KEY_ID,
+    orderId: order.id,
+    amount: amountPaise,
+    currency: plan.currency,
+    plan: toPublicPlan(plan),
+    claimToken,
+  };
+}
+
+async function verifyGuestPayment(payload) {
+  const fields = parseRazorpayPayload(payload);
+  verifyRazorpaySignature(fields);
+
+  await ensureBillingTables();
+  const connection = await db.getConnection();
+
+  try {
+    await connection.beginTransaction();
+
+    const [purchaseRows] = await connection.query(
+      `SELECT * FROM subscription_purchases WHERE razorpay_order_id = ? FOR UPDATE`,
+      [fields.razorpayOrderId]
+    );
+    const purchase = purchaseRows[0];
+
+    if (!purchase) {
+      const error = new Error('Payment order not found');
+      error.status = 404;
+      throw error;
+    }
+
+    if (purchase.user_id != null) {
+      const error = new Error('This order is already linked to an account');
+      error.status = 409;
+      throw error;
+    }
+
+    const plan = getPlan(purchase.plan_code);
+    if (!plan || Number(purchase.amount_paise) !== plan.price * 100) {
+      const error = new Error('Payment order does not match a valid plan');
+      error.status = 409;
+      throw error;
+    }
+
+    if (
+      purchase.razorpay_payment_id &&
+      purchase.razorpay_payment_id !== fields.razorpayPaymentId
+    ) {
+      const error = new Error('Payment id mismatch for this order');
+      error.status = 409;
+      throw error;
+    }
+
+    if (purchase.status !== 'paid') {
+      await connection.query(
+        `
+          UPDATE subscription_purchases
+          SET status = 'paid',
+              razorpay_payment_id = ?,
+              razorpay_signature = ?,
+              raw_payload = ?
+          WHERE razorpay_order_id = ?
+        `,
+        [
+          fields.razorpayPaymentId,
+          fields.razorpaySignature,
+          JSON.stringify(payload),
+          fields.razorpayOrderId,
+        ]
+      );
+    }
+
+    await connection.commit();
+
+    return {
+      claimToken: purchase.claim_token,
+      planCode: purchase.plan_code,
+      plan: toPublicPlan(plan),
+      registerUrl: `${(process.env.FRONTEND_URL || 'https://design.apnahomz.com').replace(/\/+$/, '')}/register?claim=${purchase.claim_token}&plan=${purchase.plan_code}`,
+    };
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
+}
+
+async function claimGuestPurchase(userId, claimToken) {
+  if (!claimToken) {
+    const error = new Error('Purchase claim token is required');
+    error.status = 400;
+    throw error;
+  }
+
+  await ensureBillingTables();
+  const connection = await db.getConnection();
+
+  try {
+    await connection.beginTransaction();
+
+    const [purchaseRows] = await connection.query(
+      `SELECT * FROM subscription_purchases WHERE claim_token = ? FOR UPDATE`,
+      [claimToken]
+    );
+    const purchase = purchaseRows[0];
+
+    if (!purchase) {
+      const error = new Error('Purchase not found or claim link expired');
+      error.status = 404;
+      throw error;
+    }
+
+    if (purchase.status !== 'paid') {
+      const error = new Error('Payment has not been completed yet');
+      error.status = 402;
+      throw error;
+    }
+
+    if (purchase.user_id != null && Number(purchase.user_id) !== Number(userId)) {
+      const error = new Error('This purchase is already linked to another account');
+      error.status = 409;
+      throw error;
+    }
+
+    if (!purchase.razorpay_payment_id) {
+      const error = new Error('Payment is still processing. Please try again shortly.');
+      error.status = 409;
+      throw error;
+    }
+
+    if (purchase.user_id == null) {
+      await connection.query(
+        `UPDATE subscription_purchases SET user_id = ? WHERE id = ?`,
+        [userId, purchase.id]
+      );
+    }
+
+    const [existingEntitlement] = await connection.query(
+      `SELECT user_id, activated_payment_id FROM user_entitlements WHERE user_id = ? LIMIT 1`,
+      [userId]
+    );
+
+    const alreadyActivatedForPayment =
+      existingEntitlement.length > 0 &&
+      existingEntitlement[0].activated_payment_id === purchase.razorpay_payment_id;
+
+    if (!alreadyActivatedForPayment) {
+      await grantEntitlementForPurchase(
+        connection,
+        userId,
+        purchase,
+        purchase.razorpay_payment_id
+      );
+    }
+
+    await connection.commit();
+    return getEntitlement(userId);
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
 }
 
 async function handleWebhook({ rawBody, signature, eventId }) {
@@ -436,12 +696,27 @@ async function handleWebhook({ rawBody, signature, eventId }) {
   }
 
   const [purchaseRows] = await db.query(
-    `SELECT user_id FROM subscription_purchases WHERE razorpay_order_id = ? LIMIT 1`,
+    `SELECT user_id, claim_token FROM subscription_purchases WHERE razorpay_order_id = ? LIMIT 1`,
     [orderId]
   );
 
   if (!purchaseRows[0]) {
     return { ignored: true };
+  }
+
+  if (purchaseRows[0].user_id == null) {
+    await db.query(
+      `
+        UPDATE subscription_purchases
+        SET status = 'paid',
+            razorpay_payment_id = ?,
+            raw_payload = ?
+        WHERE razorpay_order_id = ?
+          AND status != 'paid'
+      `,
+      [paymentId, JSON.stringify(payload), orderId]
+    );
+    return { processed: true, pendingClaim: true, claimToken: purchaseRows[0].claim_token };
   }
 
   await activatePurchase({
@@ -700,7 +975,10 @@ module.exports = {
   listPublicPlans,
   getEntitlement,
   createOrder,
+  createGuestOrder,
   verifyPayment,
+  verifyGuestPayment,
+  claimGuestPurchase,
   handleWebhook,
   listPaymentHistory,
   reserveRenderCredits,

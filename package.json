@@ -7,7 +7,11 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:subscription": "npm run test:subscription --prefix backend",
+    "test:subscription:essential": "npm run test:subscription:essential --prefix backend",
+    "test:subscription:signature": "npm run test:subscription:signature --prefix backend",
+    "test:subscription:prestige": "npm run test:subscription:prestige --prefix backend"
   },
   "dependencies": {
     "@react-three/drei": "^9.88.17",
