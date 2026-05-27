@@ -5,21 +5,21 @@ import './assets/styles.css'
 
 import { AuthProvider } from '@/context/AuthContext'
 import { NotificationProvider } from '@/context/NotificationContext'
-import ProtectedRoute from './components/ProtectedRoute'
 import Login from '@/pages/Login'
-import Register from './pages/Register'
+import ProtectedRoute from './components/ProtectedRoute'
 import ForgotPassword from './pages/ForgotPassword'
+import Register from './pages/Register'
 import ResetPassword from './pages/ResetPassword'
 
-// Ladning Page
+// Ladning Page complete
 import Landing from './pages/Landing.jsx'
 
 // Plans list
-import Plans from './pages/Plans.jsx'
 import All from './components/Plans/All.jsx'
 import Favorite from './components/Plans/Favorite.jsx'
 import Trash from './components/Plans/Trash.jsx'
 import Billing from './pages/Billing.jsx'
+import Plans from './pages/Plans.jsx'
 
 // Editor 
 import FloorPlanEditor from './pages/FloorPlanEditor.jsx'
@@ -28,19 +28,19 @@ import FloorPlanEditor from './pages/FloorPlanEditor.jsx'
 import FloorPlanViewer from './pages/FloorPlanViewer.jsx'
 
 // Documentation
-import Main from './pages/Documentation/Main.jsx'
-import Introduction from './pages/Documentation/Introduction.jsx'
-import Package from './pages/Documentation/Package.jsx'
-import Installation from './pages/Documentation/Installation.jsx'
-import Organization from './pages/Documentation/Organization.jsx'
-import DocPlans from './pages/Documentation/Plans.jsx'
-import NewPlan from './pages/Documentation/NewPlan.jsx'
-import DrawingWalls from './pages/Documentation/DrawingWalls.jsx'
 import AddingFurnishing from './pages/Documentation/AddingFurnishing.jsx'
 import AddingText from './pages/Documentation/AddingText.jsx'
+import ChangeLog from './pages/Documentation/ChangeLog.jsx'
+import DrawingWalls from './pages/Documentation/DrawingWalls.jsx'
+import Installation from './pages/Documentation/Installation.jsx'
+import Introduction from './pages/Documentation/Introduction.jsx'
+import Main from './pages/Documentation/Main.jsx'
+import NewPlan from './pages/Documentation/NewPlan.jsx'
+import Organization from './pages/Documentation/Organization.jsx'
+import Package from './pages/Documentation/Package.jsx'
+import DocPlans from './pages/Documentation/Plans.jsx'
 import Sharing from './pages/Documentation/Sharing.jsx'
 import Support from './pages/Documentation/Support.jsx'
-import ChangeLog from './pages/Documentation/ChangeLog.jsx'
 
 // Error page
 import ErrorPage from './pages/ErrorPage.jsx'
