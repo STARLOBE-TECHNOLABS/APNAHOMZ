@@ -17,37 +17,27 @@ const allowedOrigins = [
   'http://localhost:3000',
 ];
 
+if (process.env.FRONTEND_URL) {
+  const feUrl = process.env.FRONTEND_URL.trim().replace(/\/+$/, '');
+  if (!allowedOrigins.includes(feUrl)) {
+    allowedOrigins.push(feUrl);
+  }
+}
+
 function isAllowedOrigin(origin) {
   if (!origin) return false;
   if (allowedOrigins.includes(origin)) return true;
   return /^https:\/\/[\w-]+\.vercel\.app$/i.test(origin);
 }
 
-// CORS first — OPTIONS must return before any slow middleware
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-
-  if (origin && isAllowedOrigin(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-    res.setHeader('Vary', 'Origin');
-  }
-
-  if (req.method === 'OPTIONS') {
-    const requestedHeaders = req.headers['access-control-request-headers'];
-    res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
-    res.setHeader(
-      'Access-Control-Allow-Headers',
-      requestedHeaders || 'Content-Type, Authorization, Accept'
-    );
-    res.setHeader('Access-Control-Max-Age', '86400');
-    return res.status(204).end();
-  }
-
-  next();
-});
-
 app.use(cors({
-  origin: allowedOrigins,
+  origin: (origin, callback) => {
+    if (!origin || isAllowedOrigin(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   maxAge: 86400,
