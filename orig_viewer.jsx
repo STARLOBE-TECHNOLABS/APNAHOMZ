@@ -1,13 +1,13 @@
-import React, { useState, Suspense, useMemo, useEffect, useRef } from 'react';
-import { Canvas, useThree, useFrame } from '@react-three/fiber';
-import { OrbitControls, PerspectiveCamera, Grid as ThreeGrid, Environment, PointerLockControls, ContactShadows } from '@react-three/drei';
-import * as THREE from 'three';
+import { ContactShadows, Environment, OrbitControls, PerspectiveCamera, PointerLockControls } from '@react-three/drei';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { BiDownload } from 'react-icons/bi';
+import * as THREE from 'three';
 import { ComplexWall } from './Wall';
 import { FurnitureComponents } from './furnitureModels';
 
 const SCALE = 0.02; // Global scale for 2D to 3D conversion
-
+//done
 // Helper to calculate plan bounds
 const getPlanBounds = (plan) => {
   if (!plan || (!plan.walls?.length && !plan.items?.length)) {
