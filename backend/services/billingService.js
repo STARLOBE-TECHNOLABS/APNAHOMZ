@@ -7,6 +7,9 @@ const {
   listPlans,
   toPublicPlan,
 } = require('../config/subscriptionPlans');
+const {
+  sendAdminPlanSubscriptionNotification,
+} = require('./adminNotificationService');
 
 let schemaReady = false;
 let razorpayInstance = null;
@@ -40,6 +43,33 @@ function safeEqual(a, b) {
 
 function addDaysSql(days) {
   return `DATE_ADD(NOW(), INTERVAL ${Number(days)} DAY)`;
+}
+
+async function getUserContact(userId, connection = db) {
+  const [rows] = await connection.query(
+    `SELECT id, username, email, phone FROM users WHERE id = ? LIMIT 1`,
+    [userId]
+  );
+  return rows[0] || null;
+}
+
+async function notifyPlanActivation({ userId, purchase, plan }) {
+  const user = await getUserContact(userId);
+  if (!user) return;
+
+  await sendAdminPlanSubscriptionNotification({
+    username: user.username,
+    email: user.email,
+    phone: user.phone,
+    planName: plan.name,
+    planCode: plan.code,
+    amount: plan.price,
+    currency: plan.currency,
+    renderLimit: plan.renderLimit,
+    styleAccess: plan.styleLimitLabel,
+    paymentId: purchase.razorpay_payment_id,
+    orderId: purchase.razorpay_order_id,
+  });
 }
 
 async function expireEntitlementIfNeeded(userId) {
@@ -352,6 +382,8 @@ async function activatePurchase({
 }) {
   await ensureBillingTables();
   const connection = await db.getConnection();
+  let activatedPlan = null;
+  let notificationPurchase = null;
 
   try {
     await connection.beginTransaction();
@@ -413,10 +445,27 @@ async function activatePurchase({
       ]
     );
 
-    await grantEntitlementForPurchase(connection, userId, purchase, razorpayPaymentId);
+    activatedPlan = await grantEntitlementForPurchase(connection, userId, purchase, razorpayPaymentId);
+    notificationPurchase = {
+      ...purchase,
+      razorpay_order_id: razorpayOrderId,
+      razorpay_payment_id: razorpayPaymentId,
+    };
 
     await connection.commit();
-    return getEntitlement(userId);
+    const entitlement = await getEntitlement(userId);
+
+    if (activatedPlan && notificationPurchase) {
+      await notifyPlanActivation({
+        userId,
+        purchase: notificationPurchase,
+        plan: activatedPlan,
+      }).catch((mailError) => {
+        console.error('Admin plan activation notification failed:', mailError);
+      });
+    }
+
+    return entitlement;
   } catch (error) {
     await connection.rollback();
     throw error;
@@ -578,6 +627,8 @@ async function claimGuestPurchase(userId, claimToken) {
 
   await ensureBillingTables();
   const connection = await db.getConnection();
+  let activatedPlan = null;
+  let notificationPurchase = null;
 
   try {
     await connection.beginTransaction();
@@ -629,16 +680,29 @@ async function claimGuestPurchase(userId, claimToken) {
       existingEntitlement[0].activated_payment_id === purchase.razorpay_payment_id;
 
     if (!alreadyActivatedForPayment) {
-      await grantEntitlementForPurchase(
+      activatedPlan = await grantEntitlementForPurchase(
         connection,
         userId,
         purchase,
         purchase.razorpay_payment_id
       );
+      notificationPurchase = purchase;
     }
 
     await connection.commit();
-    return getEntitlement(userId);
+    const entitlement = await getEntitlement(userId);
+
+    if (activatedPlan && notificationPurchase) {
+      await notifyPlanActivation({
+        userId,
+        purchase: notificationPurchase,
+        plan: activatedPlan,
+      }).catch((mailError) => {
+        console.error('Admin claimed plan notification failed:', mailError);
+      });
+    }
+
+    return entitlement;
   } catch (error) {
     await connection.rollback();
     throw error;

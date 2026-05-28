@@ -2,10 +2,9 @@ const express = require('express');
 const router = express.Router();
 const db = require('../database/db');
 const authenticateToken = require('../middleware/authMiddleware');
-const requireActiveSubscription = require('../middleware/subscriptionMiddleware');
 
 // Get all plans for the logged-in user
-router.get('/', authenticateToken, requireActiveSubscription, async (req, res) => {
+router.get('/', authenticateToken, async (req, res) => {
   const userId = req.user.id;
 
   try {
@@ -32,7 +31,7 @@ router.get('/', authenticateToken, requireActiveSubscription, async (req, res) =
 });
 
 // Get a single plan by ID
-router.get('/:id', authenticateToken, requireActiveSubscription, async (req, res) => {
+router.get('/:id', authenticateToken, async (req, res) => {
   const userId = req.user.id;
   const planId = req.params.id;
 
@@ -56,7 +55,7 @@ router.get('/:id', authenticateToken, requireActiveSubscription, async (req, res
 });
 
 // Create a new plan
-router.post('/', authenticateToken, requireActiveSubscription, async (req, res) => {
+router.post('/', authenticateToken, async (req, res) => {
   const userId = req.user.id;
   const { id, name, data } = req.body;
 
@@ -78,7 +77,7 @@ router.post('/', authenticateToken, requireActiveSubscription, async (req, res) 
 });
 
 // Update a plan
-router.put('/:id', authenticateToken, requireActiveSubscription, async (req, res) => {
+router.put('/:id', authenticateToken, async (req, res) => {
   const userId = req.user.id;
   const planId = req.params.id;
   const { name, data } = req.body;
@@ -105,7 +104,7 @@ router.put('/:id', authenticateToken, requireActiveSubscription, async (req, res
 });
 
 // Delete a plan
-router.delete('/:id', authenticateToken, requireActiveSubscription, async (req, res) => {
+router.delete('/:id', authenticateToken, async (req, res) => {
   const userId = req.user.id;
   const planId = req.params.id;
 

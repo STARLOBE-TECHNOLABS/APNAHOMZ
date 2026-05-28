@@ -618,9 +618,16 @@ const BillingGateModal = ({
               AI rendering uses 30-day package credits. Your 2D editor and 3D view stay available.
             </p>
             {entitlement?.active && (
-              <p className="mt-2 text-sm font-semibold text-[#142725]">
-                Current usage: {entitlement.renderUsed}/{entitlement.renderLimit} used, {entitlement.renderRemaining} remaining
-              </p>
+              <>
+                <p className="mt-2 text-sm font-semibold text-[#142725]">
+                  Current usage: {entitlement.renderUsed}/{entitlement.renderLimit} used, {entitlement.renderRemaining} remaining
+                </p>
+                {entitlement.renderRemaining <= 0 && (
+                  <p className="mt-2 text-sm text-amber-700">
+                    Your credits are finished. Buy a plan again to recharge AI renders based on the selected plan.
+                  </p>
+                )}
+              </>
             )}
           </div>
           <button

@@ -7,8 +7,6 @@ import { AuthProvider } from '@/context/AuthContext'
 import { NotificationProvider } from '@/context/NotificationContext'
 import Login from '@/pages/Login'
 import ProtectedRoute from './components/ProtectedRoute'
-import GateActiveSubscription from './components/GateActiveSubscription'
-import RequireActivePlan from './components/RequireActivePlan'
 import PlansIndexRedirect from './components/PlansIndexRedirect'
 import ForgotPassword from './pages/ForgotPassword'
 import Register from './pages/Register'
@@ -79,73 +77,68 @@ const router = createBrowserRouter([
       { index: true, element: <PlansIndexRedirect /> },
       { path: "billing", element: <Billing /> },
       {
-        element: <RequireActivePlan />,
+        element: <PlansDataLayout />,
+        children: [
+          { path: "all", element: <All /> },
+          { path: "favorite", element: <Favorite /> },
+          { path: "trash", element: <Trash /> },
+        ],
+      },
+      {
+        path: "documentation",
+        element: <Main />,
         children: [
           {
-            element: <PlansDataLayout />,
-            children: [
-              { path: "all", element: <All /> },
-              { path: "favorite", element: <Favorite /> },
-              { path: "trash", element: <Trash /> },
-            ],
+            index: true,
+            loader: () => redirect('introduction'),
           },
           {
-            path: "documentation",
-            element: <Main />,
-            children: [
-              {
-                index: true,
-                loader: () => redirect('introduction'),
-              },
-              {
-                path: "introduction",
-                element: <Introduction />,
-              },
-              {
-                path: "installation",
-                element: <Installation />,
-              },
-              {
-                path: "package",
-                element: <Package />,
-              },
-              {
-                path: "organization",
-                element: <Organization />,
-              },
-              {
-                path: "plans",
-                element: <DocPlans />,
-              },
-              {
-                path: "newplan",
-                element: <NewPlan />,
-              },
-              {
-                path: "drawingwalls",
-                element: <DrawingWalls />,
-              },
-              {
-                path: "addingfurnishing",
-                element: <AddingFurnishing />,
-              },
-              {
-                path: "addingtext",
-                element: <AddingText />,
-              },
-              {
-                path: "sharing",
-                element: <Sharing />,
-              },
-              {
-                path: "support",
-                element: <Support />,
-              },
-              {
-                path: "changelog",
-                element: <ChangeLog />,
-              }
-            ]
+            path: "introduction",
+            element: <Introduction />,
+          },
+          {
+            path: "installation",
+            element: <Installation />,
+          },
+          {
+            path: "package",
+            element: <Package />,
+          },
+          {
+            path: "organization",
+            element: <Organization />,
+          },
+          {
+            path: "plans",
+            element: <DocPlans />,
+          },
+          {
+            path: "newplan",
+            element: <NewPlan />,
+          },
+          {
+            path: "drawingwalls",
+            element: <DrawingWalls />,
+          },
+          {
+            path: "addingfurnishing",
+            element: <AddingFurnishing />,
+          },
+          {
+            path: "addingtext",
+            element: <AddingText />,
+          },
+          {
+            path: "sharing",
+            element: <Sharing />,
+          },
+          {
+            path: "support",
+            element: <Support />,
+          },
+          {
+            path: "changelog",
+            element: <ChangeLog />,
           }
         ]
       },
@@ -155,9 +148,7 @@ const router = createBrowserRouter([
     path: "/editor/:planId",
     element: (
       <ProtectedRoute>
-        <GateActiveSubscription>
-          <FloorPlanEditor />
-        </GateActiveSubscription>
+        <FloorPlanEditor />
       </ProtectedRoute>
     ),
     errorElement: <ErrorPage />
@@ -166,9 +157,7 @@ const router = createBrowserRouter([
     path: "/view/:planId",
     element: (
       <ProtectedRoute>
-        <GateActiveSubscription>
-          <FloorPlanViewer />
-        </GateActiveSubscription>
+        <FloorPlanViewer />
       </ProtectedRoute>
     ),
     errorElement: <ErrorPage />

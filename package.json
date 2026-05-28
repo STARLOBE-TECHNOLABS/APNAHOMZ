@@ -8,6 +8,7 @@
     "build": "vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
+    "test:predeploy": "npm run test:predeploy --prefix backend",
     "test:subscription": "npm run test:subscription --prefix backend",
     "test:subscription:essential": "npm run test:subscription:essential --prefix backend",
     "test:subscription:signature": "npm run test:subscription:signature --prefix backend",

@@ -1,13 +1,12 @@
 /**
  * Shared helpers for subscription E2E tests (staging/local only).
- * Uses API + direct DB for payment simulation and 30-day expiry checks.
+ * Uses API + direct DB for payment simulation, credit consumption, recharge,
+ * 30-day expiry checks, and renewal checks.
  */
 const crypto = require('crypto');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../../.env') });
 
-const db = require('../../database/db');
-const billingService = require('../../services/billingService');
 const { getPlan, SUBSCRIPTION_PLANS } = require('../../config/subscriptionPlans');
 
 const API_BASE = (process.env.BILLING_E2E_API_URL || process.env.API_BASE_URL || 'http://localhost:5000')
@@ -39,24 +38,40 @@ const PLAN_EXPECTATIONS = {
 
 let passCount = 0;
 let failCount = 0;
+let dbInstance = null;
+let billingServiceInstance = null;
+
+function getDb() {
+  if (!dbInstance) {
+    dbInstance = require('../../database/db');
+  }
+  return dbInstance;
+}
+
+function getBillingService() {
+  if (!billingServiceInstance) {
+    billingServiceInstance = require('../../services/billingService');
+  }
+  return billingServiceInstance;
+}
 
 function assert(condition, message) {
   if (condition) {
     passCount += 1;
-    console.log(`  ✓ ${message}`);
+    console.log(`  OK: ${message}`);
     return true;
   }
   failCount += 1;
-  console.error(`  ✗ FAIL: ${message}`);
+  console.error(`  FAIL: ${message}`);
   return false;
 }
 
-async function api(path, { method = 'GET', token, body } = {}) {
+async function api(pathname, { method = 'GET', token, body } = {}) {
   const headers = { Accept: 'application/json' };
   if (body) headers['Content-Type'] = 'application/json';
   if (token) headers.Authorization = `Bearer ${token}`;
 
-  const response = await fetch(`${API_BASE}${path}`, {
+  const response = await fetch(`${API_BASE}${pathname}`, {
     method,
     headers,
     body: body ? JSON.stringify(body) : undefined,
@@ -71,6 +86,8 @@ function uniqueSuffix() {
 }
 
 async function simulateWordPressPaidPurchase(planCode) {
+  const billingService = getBillingService();
+  const db = getDb();
   await billingService.ensureBillingTables();
   const plan = getPlan(planCode);
   if (!plan) throw new Error(`Unknown plan: ${planCode}`);
@@ -146,11 +163,12 @@ async function testFloorPlanAccess(token, shouldAllow) {
   }
   return assert(
     status === 403 && data.code === 'SUBSCRIPTION_REQUIRED',
-    `GET /api/plans blocked when inactive (403 SUBSCRIPTION_REQUIRED)`
+    'GET /api/plans blocked when inactive (403 SUBSCRIPTION_REQUIRED)'
   );
 }
 
 async function forceExpireEntitlement(userId) {
+  const db = getDb();
   await db.query(
     `
       UPDATE user_entitlements
@@ -163,10 +181,11 @@ async function forceExpireEntitlement(userId) {
 
 async function cleanupTestUser(userId) {
   if (!userId) return;
+  const db = getDb();
   try {
     await db.query('DELETE FROM users WHERE id = ?', [userId]);
   } catch (error) {
-    console.warn(`  ! cleanup user ${userId}: ${error.message}`);
+    console.warn(`  cleanup user ${userId}: ${error.message}`);
   }
 }
 
@@ -180,10 +199,7 @@ function assertEntitlement(entitlement, planCode) {
     entitlement?.renderLimit === expected.renderLimit,
     `${planCode}: render limit ${expected.renderLimit} (got ${entitlement?.renderLimit})`
   );
-  assert(
-    entitlement?.renderUsed === 0,
-    `${planCode}: renderUsed starts at 0`
-  );
+  assert(entitlement?.renderUsed === 0, `${planCode}: renderUsed starts at 0`);
   assert(
     entitlement?.renderRemaining === expected.renderLimit,
     `${planCode}: renderRemaining = ${expected.renderLimit}`
@@ -214,24 +230,73 @@ function assertEntitlement(entitlement, planCode) {
   );
 }
 
+async function consumeAllCreditsAndVerify({ token, userId, planCode }) {
+  const billingService = getBillingService();
+  const expected = PLAN_EXPECTATIONS[planCode];
+  const styleId = expected.allowedStyleIds[0];
+
+  console.log(`  [5/8] Consume all ${expected.renderLimit} AI credits`);
+  for (let i = 0; i < expected.renderLimit; i += 1) {
+    const reservation = await billingService.reserveRenderCredits({
+      userId,
+      styleId,
+      endpoint: `e2e-${planCode}`,
+      count: 1,
+    });
+
+    await billingService.finishRenderJob({
+      jobId: reservation.jobId,
+      userId,
+      successCount: 1,
+      failureReason: null,
+    });
+  }
+
+  const afterUsage = await getEntitlementViaApi(token);
+  assert(
+    afterUsage?.renderUsed === expected.renderLimit,
+    `${planCode}: renderUsed updates to ${expected.renderLimit} after consumption`
+  );
+  assert(
+    afterUsage?.renderRemaining === 0,
+    `${planCode}: renderRemaining reaches 0 after consumption`
+  );
+
+  let blocked = false;
+  try {
+    await billingService.reserveRenderCredits({
+      userId,
+      styleId,
+      endpoint: `e2e-${planCode}-over-limit`,
+      count: 1,
+    });
+  } catch (error) {
+    blocked =
+      error.message === 'You do not have enough AI render credits remaining' &&
+      error.renderRemaining === 0;
+  }
+
+  assert(blocked, `${planCode}: extra AI render is blocked once credits finish`);
+}
+
 async function runPlanE2E(planCode) {
-  console.log(`\n━━━ Plan: ${planCode.toUpperCase()} ━━━`);
+  console.log(`\n=== Plan: ${planCode.toUpperCase()} ===`);
   let userId = null;
 
   try {
-    console.log('  [1/6] Simulate WordPress payment (paid guest purchase in DB)');
+    console.log('  [1/8] Simulate WordPress payment (paid guest purchase in DB)');
     const { claimToken } = await simulateWordPressPaidPurchase(planCode);
     assert(Boolean(claimToken), `${planCode}: claim token created`);
 
-    console.log('  [2/6] Register + claim purchase');
+    console.log('  [2/8] Register + claim purchase');
     const { token, user, entitlement } = await registerWithClaim(planCode, claimToken);
     userId = user.id;
     assert(Boolean(token), `${planCode}: JWT issued after register+claim`);
 
-    console.log('  [3/6] Verify entitlement limits & styles');
+    console.log('  [3/8] Verify entitlement limits and styles');
     assertEntitlement(entitlement, planCode);
 
-    console.log('  [4/6] Verify API access + payment history');
+    console.log('  [4/8] Verify API access and payment history');
     const liveEntitlement = await getEntitlementViaApi(token);
     assert(liveEntitlement?.active === true, `${planCode}: /api/billing/me shows active`);
     await testFloorPlanAccess(token, true);
@@ -243,13 +308,34 @@ async function runPlanE2E(planCode) {
       `${planCode}: payment history contains paid ${planCode} row`
     );
 
-    console.log('  [5/6] Force expiry (simulate day 31)');
+    await consumeAllCreditsAndVerify({ token, userId, planCode });
+
+    console.log('  [6/8] Buy the plan again before expiry and verify credits refresh');
+    const recharge = await simulateWordPressPaidPurchase(planCode);
+    const rechargeResponse = await api('/api/billing/claim', {
+      method: 'POST',
+      token,
+      body: { claimToken: recharge.claimToken },
+    });
+    assert(
+      rechargeResponse.status === 200,
+      `${planCode}: recharge claim succeeds (${rechargeResponse.status})`
+    );
+    assertEntitlement(rechargeResponse.data.entitlement, planCode);
+
+    const refreshedHistory = await getPaymentHistory(token);
+    assert(
+      refreshedHistory.filter((row) => row.planCode === planCode && row.status === 'paid').length >= 2,
+      `${planCode}: payment history contains repeated paid purchases after recharge`
+    );
+
+    console.log('  [7/8] Force expiry (simulate day 31)');
     await forceExpireEntitlement(userId);
     const expiredEntitlement = await getEntitlementViaApi(token);
     assert(expiredEntitlement?.active === false, `${planCode}: entitlement inactive after expiry date passed`);
-    await testFloorPlanAccess(token, false);
+    await testFloorPlanAccess(token, true);
 
-    console.log('  [6/6] Re-activate with new purchase (renewal)');
+    console.log('  [8/8] Re-activate with new purchase after expiry');
     const renewal = await simulateWordPressPaidPurchase(planCode);
     const { status, data } = await api('/api/billing/claim', {
       method: 'POST',
@@ -262,16 +348,21 @@ async function runPlanE2E(planCode) {
       data.entitlement?.renderLimit === PLAN_EXPECTATIONS[planCode].renderLimit,
       `${planCode}: render limit restored after renewal`
     );
+    assert(
+      data.entitlement?.renderUsed === 0 &&
+      data.entitlement?.renderRemaining === PLAN_EXPECTATIONS[planCode].renderLimit,
+      `${planCode}: credits fully refreshed after renewal`
+    );
     await testFloorPlanAccess(token, true);
 
-    console.log(`  → ${planCode} E2E complete`);
+    console.log(`  -> ${planCode} E2E complete`);
   } finally {
     await cleanupTestUser(userId);
   }
 }
 
 async function verifyPublicPlansApi() {
-  console.log('\n━━━ Public plans API ━━━');
+  console.log('\n=== Public plans API ===');
   const { status, data } = await api('/api/billing/plans');
   assert(status === 200, 'GET /api/billing/plans returns 200');
   const codes = (data.plans || []).map((p) => p.code).sort();
@@ -299,10 +390,10 @@ function assertSafeTarget() {
 }
 
 function printSummary() {
-  console.log('\n══════════════════════════════════════');
+  console.log('\n========================================');
   console.log(`PASSED: ${passCount}`);
   console.log(`FAILED: ${failCount}`);
-  console.log('══════════════════════════════════════');
+  console.log('========================================');
   if (failCount > 0) process.exit(1);
 }
 
@@ -310,6 +401,7 @@ module.exports = {
   API_BASE,
   PLAN_EXPECTATIONS,
   assert,
+  api,
   assertSafeTarget,
   printSummary,
   passCount: () => passCount,
@@ -321,4 +413,5 @@ module.exports = {
   getEntitlementViaApi,
   forceExpireEntitlement,
   cleanupTestUser,
+  consumeAllCreditsAndVerify,
 };

@@ -108,7 +108,7 @@ const Billing = () => {
 
       {subscriptionHint && (
         <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          Choose a plan below to unlock the 2D editor, 3D view, documentation, and AI features included in your package.
+          Your account already includes 2D planning and 3D viewing. Choose a plan below to unlock AI render credits, higher style access, and the extra package perks.
         </div>
       )}
 
@@ -127,11 +127,17 @@ const Billing = () => {
           <div className="mt-1 text-sm text-slate-500">
             {entitlement?.active
               ? `Your 30-day package is active until ${formatDate(entitlement.cycleEndAt)}.`
-              : 'Buy a package to unlock 2D, 3D, AI rendering, and plan features below.'}
+              : 'You can keep using 2D planning and 3D viewing for free. Buy a package to add AI rendering credits, more styles, and the premium features below.'}
           </div>
         </div>
 
         {entitlement?.active && <PlanUsageSummary entitlement={entitlement} />}
+
+        {entitlement?.active && entitlement.renderRemaining <= 0 && (
+          <div className="mt-5 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            Your AI render credits are finished. You can buy this plan again, or choose another plan, and your credits will refresh based on the plan you purchase.
+          </div>
+        )}
       </div>
 
       <div className="mt-6">

@@ -3,22 +3,14 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const nodemailer = require('nodemailer');
 const db = require('../database/db');
 const billingService = require('../services/billingService');
+const { sendEmail } = require('../services/emailService');
+const {
+  sendAdminUserRegistrationNotification,
+} = require('../services/adminNotificationService');
 
 const SECRET_KEY = process.env.JWT_SECRET || 'your-secret-key-change-this';
-
-// Email Transporter
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: process.env.SMTP_PORT,
-  secure: true, // true for 465, false for other ports
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS
-  }
-});
 
 // Register
 router.post('/register', async (req, res) => {
@@ -42,6 +34,10 @@ router.post('/register', async (req, res) => {
     }
 
     const token = jwt.sign({ id: user.id, username: user.username }, SECRET_KEY, { expiresIn: '24h' });
+
+    await sendAdminUserRegistrationNotification({ username, email, phone }).catch((mailError) => {
+      console.error('Admin registration notification failed:', mailError);
+    });
 
     res.status(201).json({ user, token, entitlement });
   } catch (error) {
@@ -115,8 +111,7 @@ router.post('/forgot-password', async (req, res) => {
     const resetLink = `${process.env.FRONTEND_URL || 'https://design.apnahomz.com'}/reset-password/${token}`;
     
     //updated
-    const mailOptions = {
-      from: `"FloorLite Support" <${process.env.SMTP_USER}>`,
+    await sendEmail({
       to: email,
       subject: 'Password Reset Request',
       html: `
@@ -125,10 +120,8 @@ router.post('/forgot-password', async (req, res) => {
         <a href="${resetLink}">Reset Password</a>
         <p>This link is valid for 1 hour.</p>
         <p>If you didn't request this, please ignore this email.</p>
-      `
-    };
-
-    await transporter.sendMail(mailOptions);
+      `,
+    });
     
     res.json({ message: 'Password reset link sent to your email.' });
   } catch (error) {

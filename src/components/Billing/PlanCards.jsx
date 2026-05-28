@@ -43,6 +43,7 @@ const PlanCards = ({
   onSelectPlan,
   compact = false,
 }) => {
+  const creditsExhausted = Boolean(entitlement?.active) && Number(entitlement?.renderRemaining || 0) <= 0;
   const rows = [
     { label: 'Best For', getValue: (plan) => plan.bestFor },
     { label: 'AI Render Limit', getValue: (plan) => plan.renderLimitLabel },
@@ -93,6 +94,9 @@ const PlanCards = ({
           const isLoading = checkoutLoading === plan.code;
           const colors = PLAN_COLORS[plan.code] || PLAN_COLORS.essential;
           const isSignature = plan.code === 'signature';
+          const ctaLabel = isCurrent
+            ? (creditsExhausted ? `Buy ${plan.name} Again` : 'Renew or Replace')
+            : `Choose ${plan.name}`;
 
           return (
             <div
@@ -122,7 +126,7 @@ const PlanCards = ({
                 </div>
                 {isCurrent && (
                   <div className="mt-3 rounded-full bg-[#142725] px-3 py-1 text-xs font-semibold text-white">
-                    Active
+                    {creditsExhausted ? 'Active - Credits Used' : 'Active'}
                   </div>
                 )}
               </div>
@@ -164,7 +168,7 @@ const PlanCards = ({
                   className={`mt-4 flex h-11 w-full items-center justify-center gap-2 rounded-md border px-4 text-sm font-black uppercase tracking-wide transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${colors.button}`}
                 >
                   {isLoading && <BiLoaderAlt className="animate-spin" size={18} />}
-                  {isCurrent ? 'Renew or Replace' : `Choose ${plan.name}`}
+                  {ctaLabel}
                 </button>
               </div>
             </div>

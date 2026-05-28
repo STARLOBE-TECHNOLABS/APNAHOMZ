@@ -97,7 +97,7 @@ const Register = () => {
         notify({ content: 'Account created successfully!', type: 'success' });
         const { plan, source } = parseMarketingCheckout(searchParams.toString());
         const pendingPlan = plan || getPendingCheckoutPlan();
-        navigate(billingPathWithCheckout(pendingPlan, source || undefined));
+        navigate(pendingPlan ? billingPathWithCheckout(pendingPlan, source || undefined) : '/plans/all');
       }
     } else {
       notify({ content: result.error || "Registration failed", type: "error" });
