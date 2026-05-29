@@ -1,6 +1,3 @@
-import { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { BiHide, BiShow } from 'react-icons/bi';
 import { useAuth } from '@/context/AuthContext';
 import { useNotification } from '@/context/NotificationContext';
 import {
@@ -9,6 +6,9 @@ import {
   parseMarketingCheckout,
   persistMarketingCheckout,
 } from '@/utils/marketingCheckout';
+import { useEffect, useState } from 'react';
+import { BiHide, BiShow } from 'react-icons/bi';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -79,7 +79,7 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex bg-slate-50 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]">
-      <div className="hidden lg:flex lg:w-1/2 relative bg-blue-600 items-center justify-center overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 relative bg-[#142725] items-center justify-center overflow-hidden">
         <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/blueprint-grid.png')]" />
         <img
           src="/landing/screen3.png"
@@ -88,7 +88,9 @@ const Login = () => {
         />
         <div className="absolute bottom-10 text-white text-center z-10 px-8">
           <h2 className="text-3xl font-bold mb-2">Design Your Dream Space</h2>
-          <p className="text-blue-100">Professional floor planning tools right in your browser.</p>
+          <p className="text-blue-100">
+            Professional floor planning tools right in your browser.
+          </p>
         </div>
       </div>
 
@@ -102,15 +104,22 @@ const Login = () => {
                 className="h-20 w-auto object-contain"
               />
             </div>
-            <h2 className="text-3xl font-extrabold text-gray-900">Welcome back</h2>
-            <p className="mt-2 text-sm text-gray-600">Please sign in to your account</p>
+            <h2 className="text-3xl font-extrabold text-gray-900">
+              Welcome back
+            </h2>
+            <p className="mt-2 text-sm text-gray-600">
+              Please sign in to your account
+            </p>
           </div>
 
           <div className="mt-8">
             <div className="bg-white py-8 px-4 shadow-xl rounded-2xl sm:px-10 border border-gray-100">
               <form className="space-y-6" onSubmit={handleSubmit}>
                 <div>
-                  <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+                  <label
+                    htmlFor="username"
+                    className="block text-sm font-medium text-gray-700"
+                  >
                     Username
                   </label>
                   <div className="mt-1">
@@ -129,14 +138,17 @@ const Login = () => {
                 </div>
 
                 <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                  <label
+                    htmlFor="password"
+                    className="block text-sm font-medium text-gray-700"
+                  >
                     Password
                   </label>
                   <div className="relative mt-1">
                     <input
                       id="password"
                       name="password"
-                      type={showPassword ? 'text' : 'password'}
+                      type={showPassword ? "text" : "password"}
                       autoComplete="current-password"
                       required
                       value={password}
@@ -148,17 +160,26 @@ const Login = () => {
                       type="button"
                       onClick={() => setShowPassword((value) => !value)}
                       className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 transition-colors hover:text-gray-600"
-                      aria-label={showPassword ? 'Hide password' : 'Show password'}
-                      title={showPassword ? 'Hide password' : 'Show password'}
+                      aria-label={
+                        showPassword ? "Hide password" : "Show password"
+                      }
+                      title={showPassword ? "Hide password" : "Show password"}
                     >
-                      {showPassword ? <BiHide size={20} /> : <BiShow size={20} />}
+                      {showPassword ? (
+                        <BiHide size={20} />
+                      ) : (
+                        <BiShow size={20} />
+                      )}
                     </button>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <div className="text-sm">
-                    <Link to="/forgot-password" className="font-medium text-blue-600 hover:text-blue-500">
+                    <Link
+                      to="/forgot-password"
+                      className="font-medium text-black"
+                    >
                       Forgot your password?
                     </Link>
                   </div>
@@ -168,17 +189,35 @@ const Login = () => {
                   <button
                     type="submit"
                     disabled={loading}
-                    className={`w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all transform hover:-translate-y-0.5 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                    className={`w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-[#142725] hover:bg-[#203f3c] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#142725] transition-all transform hover:-translate-y-0.5 ${loading ? "opacity-70 cursor-not-allowed" : ""}`}
                   >
                     {loading ? (
                       <span className="flex items-center gap-2">
-                        <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        <svg
+                          className="animate-spin h-4 w-4 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          />
                         </svg>
                         Signing in...
                       </span>
-                    ) : 'Sign in'}
+                    ) : (
+                      "Sign in"
+                    )}
                   </button>
                 </div>
               </form>
@@ -189,14 +228,16 @@ const Login = () => {
                     <div className="w-full border-t border-gray-300" />
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="px-2 bg-white text-gray-500">New to APNAHOMZ?</span>
+                    <span className="px-2 bg-white text-gray-500">
+                      New to APNAHOMZ?
+                    </span>
                   </div>
                 </div>
 
                 <div className="mt-6">
                   <Link
                     to="/register"
-                    className="w-full flex justify-center py-2.5 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                    className="w-full flex justify-center py-2.5 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#142725] transition-colors"
                   >
                     Create an account
                   </Link>
