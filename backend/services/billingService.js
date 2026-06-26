@@ -320,9 +320,73 @@ function formatEntitlement(row) {
   };
 }
 
+async function checkIsAdmin(userId, connection = db) {
+  const user = await getUserContact(userId, connection);
+  return user && (user.username === 'apnahomz' || user.email === 'info@apnahomz.com' || user.phone === '7984000631');
+}
+
 async function getEntitlement(userId) {
   await ensureBillingTables();
   await expireEntitlementIfNeeded(userId);
+
+  const isAdmin = await checkIsAdmin(userId);
+  if (isAdmin) {
+    return {
+      active: true,
+      planCode: 'prestige',
+      plan: {
+        code: 'prestige',
+        name: 'Super Admin',
+        badge: 'Unlimited Access',
+        tagline: 'System administrator account',
+        bestFor: 'System Admin',
+        originalPrice: 0,
+        price: 0,
+        currency: 'INR',
+        renderLimit: 999999,
+        renderLimitLabel: 'Unlimited Renders',
+        threeDViewsLabel: 'Free 3D View',
+        styleLimitLabel: 'All Premium Styles',
+        furnitureSourcing: true,
+        humanDesignHelp: true,
+        idealPropertyType: 'Villas, Cafes & Commercial Spaces',
+        allowedStyleIds: [
+          'modern',
+          'minimalist',
+          'scandinavian',
+          'luxury',
+          'contemporary',
+          'industrial',
+          'traditional',
+          'bohemian',
+        ],
+        durationDays: 36500,
+        packageValidityLabel: 'Lifetime',
+        features: [
+          'Unlimited Renders',
+          'All Premium Styles',
+          'Free 3D View',
+          'System Admin',
+        ],
+      },
+      renderLimit: 999999,
+      renderUsed: 0,
+      renderReserved: 0,
+      renderRemaining: 999999,
+      cycleStartAt: new Date(2026, 0, 1).toISOString(),
+      cycleEndAt: new Date(2126, 0, 1).toISOString(),
+      allowedStyleIds: [
+        'modern',
+        'minimalist',
+        'scandinavian',
+        'luxury',
+        'contemporary',
+        'industrial',
+        'traditional',
+        'bohemian',
+      ],
+    };
+  }
 
   const [rows] = await db.query(
     `SELECT * FROM user_entitlements WHERE user_id = ? LIMIT 1`,
@@ -847,6 +911,12 @@ function getStyleId(req) {
 async function reserveRenderCredits({ userId, styleId, endpoint, count = 1 }) {
   await ensureBillingTables();
   const reserveCount = Math.max(1, Number(count) || 1);
+
+  const isAdmin = await checkIsAdmin(userId);
+  if (isAdmin) {
+    return { jobId: `admin_mock_${crypto.randomUUID()}`, reserved: reserveCount };
+  }
+
   const connection = await db.getConnection();
   const jobId = crypto.randomUUID();
   let transactionFinished = false;
@@ -951,6 +1021,9 @@ async function reserveRenderCredits({ userId, styleId, endpoint, count = 1 }) {
 
 async function finishRenderJob({ jobId, userId, successCount = 1, failureReason = null }) {
   if (!jobId) return;
+  if (String(jobId).startsWith('admin_mock_')) {
+    return;
+  }
   await ensureBillingTables();
   const connection = await db.getConnection();
 
